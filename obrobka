@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -N obrobka
+#PBS -q standard
+#PBS -r n
+#PBS -l walltime=24:0:0
+#PBS -o OUT-obrobka_HCH${VAR3}_gaps-${VAR4}_mD-${VAR5}_G-${VAR6}_B-${VAR9}_fromP-${VAR7}_${PBS_JOBID}.txt
+#PBS -e ERR-obrobka_HCH${VAR3}_gaps-${VAR4}_mD-${VAR5}_G-${VAR6}_B-${VAR9}_fromP-${VAR7}_${PBS_JOBID}.txt
+
+#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
+
+#cd $SLURM_SUBMIT_DIR;
+#source scriptConfig;
+#time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory};
+#cd ${newDirectoryName};
+#time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir};
+#time srun java -jar filterCopy.jar;
+
+cd $PBS_O_WORKDIR;
+source scriptConfig;
+time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory};
+cd ${newDirectoryName};
+time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir};
+time java -jar filterCopy.jar;
+
+
+exit 0

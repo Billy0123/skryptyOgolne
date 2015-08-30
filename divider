@@ -1,0 +1,8 @@
+#$1 - numer badania nowego folderu, $2 - skok omijania
+
+mkdir 2D_N-780_gaps-0_G-0_badanie-${1}_mN-6_mS-1.00_mD-1.00;
+for ((i=1;i<=139;i++)); do
+  PRESSURE=$(cat pressureList | head -n ${i} | tail -1);
+  sed -n 1~${2}p 2D_N-780_gaps-0_G-0_badanie-1_mN-6_mS-1.00_mD-1.00/j-none_Configurations_arg-${PRESSURE}_Results.txt > 2D_N-780_gaps-0_G-0_badanie-${1}_mN-6_mS-1.00_mD-1.00/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+done
+

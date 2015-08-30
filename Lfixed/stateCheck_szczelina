@@ -1,0 +1,88 @@
+#dla danego folderu (adress) sprawdza liczbe aktywnych jobow. Pomniejsza je o liczbe ukonczonych (zatem, przy OnePoint: 'j-1_', a przy zwyklych rekurencjach: 'j-x_', etc.)
+
+#system: 0-SLURM (Cane, Chimera), 1-PBS/Torque (Reef, Inula)
+system=0;
+
+minDirectory=1;
+maxDirectory=1;
+N=224;
+gaps=0;
+G=0;
+mN=6;
+mS=1.00;
+mD=0.500001;
+startQuantity=400;
+adress=224_1E7_anizotropia0.500001_szczelina_LYFixed;
+
+#filterDirectories - dla badan typu OnePoint - 'j-1_' (zalozenie, ze jobID skojarzony jest z REPEATEM), dla zwyklej rekurencji  'j-x_' (x, w zaleznosci od numeru ostatniego punktu), etc. Mozna wbic np. cisnienie ostatniego punktu, etc.
+filterDirectories=j-1_;
+
+#filterQueue - gdy na jednej maszynie leci wiecej badan, trzeba je jakos rozrozniac; UWAGA: na poziomie SQUEUE/QSTAT [trzeba dostosowywac w zaleznosci od badan -> czasami bedzie dobra 'kolejka' czasami 'charakterystyczna czesc nazwy', etc.
+filterQueue=sz_;
+
+echo ${filterQueue};
+
+
+echo -e "\e[91m===== \e[31mstateCheck \e[91m======================================\e[0m";
+V1=0;
+listLength=$(wc -l startArguments-szczelinaDoStateCheck.txt | cut -f1 -d' ');
+startAdress=$(pwd);
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+   echo -ne "\r\e[94mChecking finished jobs in directory: \e[32m$((${i} - ${minDirectory} + 1))\e[94m/$((${maxDirectory} - ${minDirectory} + 1))\e[94m... \e[0m";
+   for ((j=1;j<=${listLength};j++)); do
+      cd ${startAdress};
+      linia=$(cat startArguments-szczelinaDoStateCheck.txt | head -n ${j} | tail -1);
+      PRESSURE=${linia##*	};
+      cd ${startAdress}/${adress}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_mN-${mN}_mD-${mD}_p-${PRESSURE};
+      ls -l | grep -e ${filterDirectories} > fileD;
+      grep -e "Configurations" fileD > fileDC;
+      grep -e "Results" fileDC > fileDCR;
+      V2=$(wc -l fileDCR | cut -f1 -d' ');
+      V1=$((${V1} + ${V2}));
+      rm fileD;
+      rm fileDC;
+      rm fileDCR;
+   done
+done
+echo -e "\e[32mdone\e[0m";
+
+echo -ne "\e[94mChecking list of active jobs... \e[0m";
+if [ ${system} = 0 ]; then
+   squeue -u mb1991 -o "\e[94m%i \e[34m%P \e[94m%j \e[34m%T \e[94m%M \e[34m%l \e[94m%D \e[91m%R\e[0m" | grep ${filterQueue} > fileQueue;
+   grep "RUNNING" fileQueue > fileQueueRunning;
+   grep "PENDING" fileQueue > fileQueueQueued;
+else
+   qstat -u mb1991 | grep ${filterQueue} > fileQueue;
+   grep " R " fileQueue > fileQueueRunning;
+   grep " Q " fileQueue > fileQueueQueued;
+fi
+V3=$(wc -l fileQueue | cut -f1 -d' ');
+V4=$(wc -l fileQueueRunning | cut -f1 -d' ');
+V5=$(wc -l fileQueueQueued | cut -f1 -d' ');
+echo -e "\e[32mdone\e[0m";
+
+echo -e "\e[91m===== \e[31mINFORMATIONS \e[91m====================================\e[0m";
+echo -e "Directory: \e[44m${adress}\e[0m";
+
+difference=$((${startQuantity} - ${V1} - ${V3}));
+if [ ${difference} = 0 ]; then
+   echo -e "State: \e[32mOK\e[0m";
+else
+   if [ ${difference} -gt 0 ]; then
+      echo -e "State: \e[31mERROR\e[0m ----> \e[91mMissing: ${difference}\e[0m";
+   else
+      echo -e "State: \e[31mERROR\e[0m ----> \e[92mRedundant: $((-${difference}))\e[0m";
+   fi
+fi
+echo -e "Jobs (\e[32msum\e[0m[\e[92mfinished\e[0m+\e[94mrunning\e[0m]/\e[31msum\e[0m[\e[33mstarted\e[0m-\e[91mqueued\e[0m]): \e[32m$((${V1} + ${V4}))\e[0m[\e[92m${V1}\e[0m+\e[94m${V4}\e[0m]/\e[31m$((${startQuantity} - ${V5}))\e[0m[\e[33m${startQuantity}\e[0m-\e[91m${V5}\e[0m]";
+if [ ${V4} -gt 0 ]; then
+   echo -e "First running job: $(cat fileQueueRunning | head -n 1 | tail -1)"; 
+fi
+if [ ${V5} -gt 0 ]; then   
+   echo -e "First queued job: $(cat fileQueueQueued | head -n 1 | tail -1)";
+fi
+echo -e "\e[91m=======================================================\e[0m";
+
+rm fileQueue;
+rm fileQueueRunning;
+rm fileQueueQueued;

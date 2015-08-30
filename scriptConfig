@@ -1,0 +1,38 @@
+#common (used in more than one script)
+N=780;
+G=0;
+gaps=0;
+mN=6;
+mS=0.01;
+mD=1.000000;
+minDirectory=1
+maxDirectory=10
+startArgumentsFileName=startArguments.txt
+
+#obrobka
+linesToSkip=0;
+startPointNumber=0;
+useSpecificDir=1;
+
+#resultMerger
+newDirectoryName=merged;
+
+#reanimationSingle
+reanimationSingleType=1 #0-start,1-continuation
+
+#getMissingJobs
+queueSystem=0 #0-SLURM (Cane, Chimera), 1-PBS/Torque (Reef, Inula)
+minPoint=0 #from 0
+maxPoint=12 #max+1 from 0
+maxJobID=22 #startRepeats+1
+fileRunningJobsName=file
+filterText=Z_
+fileJobIDName=jobIDs
+startPreviousIteration=0
+fileDirectoriesName=directories
+directoriesParameter=B
+filePointsName=points
+pointsParameter=P
+#fixedL
+filePressureIndexesName=pointNumbersP
+pressureIndexesParameter=C

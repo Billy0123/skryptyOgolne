@@ -1,0 +1,13 @@
+listLength=$(wc -w pressureList | cut -f1 -d' ');
+
+for ((i=1;i<=720;i++)); do
+
+jobID=$(cat jobIDs | head -n ${i} | tail -1);
+directory=$(cat directories | head -n ${i} | tail -1);
+point=$(cat points | head -n ${i} | tail -1);
+
+pressure=$(cat pressureList | head -n $((${listLength} - ${point})) | tail -1);
+
+scp -r mb1991@cane.man.poznan.pl:3120_4E8_OtoczeniePrzejscia3/2D_N-3120_gaps-0_G-0_badanie-${directory}_mN-6_mS-1.00_mD-1.00/j-${jobID}_Configurations_arg-${pressure}.txt ./2D_N-3120_gaps-0_G-0_badanie-${directory}_mN-6_mS-1.00_mD-1.00;
+
+done
