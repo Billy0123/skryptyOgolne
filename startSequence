@@ -1,0 +1,12 @@
+source scriptConfig;
+
+for ((directory=${minDirectory};directory<=${maxDirectory};directory++)); do
+point=0;
+echo "starting: point-${point}, directory-${directory}";
+if [ ${queueSystem} = 0 ]; then
+sbatch -Q --job-name=${filterText}B${directory}P${point} --output=output/OUT_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_%j.txt sbatchTMPRecursionStartNormal ${N} ${gaps} ${mS} ${mD} ${G} 1 ${directory} ${maxPoint} ${point};
+else
+qsub -N ${filterText}B${directory}P${point} -v VAR1=${N},VAR2=${gaps},VAR3=${mS},VAR4=${mD},VAR5=${G},VAR6=1,VAR7=${directory},VAR8=${maxPoint},VAR9=${point} qsubTMPRecursionStartNormal;
+fi
+if [ ${directory} -lt ${maxDirectory} ]; then sleep $1; fi;
+done

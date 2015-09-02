@@ -1,0 +1,13 @@
+source scriptConfig;
+
+listLength=$(wc -l ${fileDirectoriesName} | cut -f1 -d' ');
+for((i=1;i<=${listLength};i++)); do 
+directory=$(cat ${fileDirectoriesName} | head -n ${i} | tail -1);
+point=$(cat ${filePointsName} | head -n ${i} | tail -1);
+echo "starting ${i}/${listLength}: point-${point}, directory-${directory}";
+if [ ${queueSystem} = 0 ]; then
+sbatch --job-name=${filterText}B${directory}P$((${point} + 1)) --output=output/OUT_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_%j.txt sbatchTMPRecursion none ${N} ${gaps} ${mS} ${mD} ${G} ${point} 1 ${directory} ${maxPoint};
+else
+qsub -N ${filterText}B${directory}P$((${point} + 1)) -o output/OUT_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_prevJobID-REANIMATED.txt -e output/ERR_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_prevJobID-REANIMATED.txt -v VAR1=none,VAR2=${N},VAR3=${gaps},VAR4=${mS},VAR5=${mD},VAR6=${G},VAR7=${point},VAR8=1,VAR9=${directory},VAR10=${maxPoint} qsubTMPRecursion;
+fi
+done
