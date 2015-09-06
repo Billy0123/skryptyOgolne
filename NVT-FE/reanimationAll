@@ -5,7 +5,7 @@ squeue -u mb1991 -o "%i %P %j %T %M %D %R" > ${fileRunningJobsName}
 else 
 qstat -l | grep mb1991 > ${fileRunningJobsName}    #wystarcza zwykły qstat -u mb1991, ale taki jak podany zrzuci 'koncowki' nazw (gdy sa za dlugie) zamiast poczatkow (wyswietli je jako np. "bardzoDlugaNazwaJobu012345" -> "...azwaJobu012345" (zamiast "bardzoDlugaNazwaJ")
 fi
-java getmissingjobs ${minDirectory} ${maxDirectory} ${minPoint} ${maxPoint} ${maxJobID} ${N} ${gaps} ${G} ${mN} ${mD} ${startArgumentsFileName} ${fileRunningJobsName} ${filterText} ${fileJobIDName} ${startPreviousIteration} ${fileDirectoriesName}!${directoriesParameter} ${filePointsName}!${pointsParameter} ${fileAdditionalIndexesName}!${additionalIndexesParameter}
+java getmissingjobs ${minDirectory} ${maxDirectory} ${minPoint} ${maxPoint} ${maxJobID} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${startArgumentsFileName} ${fileRunningJobsName} ${filterText} ${fileJobIDName} ${startPreviousIteration} ${fileDirectoriesName}!${directoriesParameter} ${filePointsName}!${pointsParameter} ${fileAdditionalIndexesName}!${additionalIndexesParameter} ${additionalMinIndex} ${additionalMaxIndex}
 rm ${fileRunningJobsName}
 echo -e "\e[94mFinished building a list of missing jobs, starting reanimation...\e[0m";
 

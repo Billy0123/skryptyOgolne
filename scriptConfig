@@ -28,11 +28,13 @@ maxJobID=22 #startRepeats+1
 fileRunningJobsName=file
 filterText=Z_
 fileJobIDName=jobIDs
-startPreviousIteration=0
+startPreviousIteration=0 #repeatsLeft: jobID-1+startPreviousIteration
 fileDirectoriesName=directories
 directoriesParameter=B
 filePointsName=points
 pointsParameter=P
-#fixedL
-filePressureIndexesName=pointNumbersP
-pressureIndexesParameter=C
+#additional
+fileAdditionalIndexesName=additionalIndexes
+additionalIndexesParameter=C
+additionalMinIndex=0 #from 0 [row in additional file]
+additionalMaxIndex=1 #max+1 from 0 [row in additional file]
