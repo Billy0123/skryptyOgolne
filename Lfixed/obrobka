@@ -12,7 +12,7 @@
 cd $SLURM_SUBMIT_DIR;
 source scriptConfig;
 listLength=$(wc -l ${startArgumentsFileName} | cut -f1 -d' ');
-time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mD} ${minDirectory} ${maxDirectory};
+time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mD} ${minDirectory} ${maxDirectory} ${liczbaDanych};
 cd ${newDirectoryName};
 for ((pointNumberP=0;pointNumberP<${listLength};pointNumberP++)); do
    time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir} ${pointNumberP};
@@ -22,7 +22,7 @@ time srun java -jar filterCopy.jar;
 #cd $PBS_O_WORKDIR;
 #source scriptConfig;
 #listLength=$(wc -l ${startArgumentsFileName} | cut -f1 -d' ');
-#time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mD} ${minDirectory} ${maxDirectory};
+#time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mD} ${minDirectory} ${maxDirectory} ${liczbaDanych};
 #cd ${newDirectoryName};
 #for ((pointNumberP=0;pointNumberP<${listLength};pointNumberP++)); do
 #   time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir} ${pointNumberP};

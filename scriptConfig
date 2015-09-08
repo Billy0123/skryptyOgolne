@@ -13,6 +13,7 @@ startArgumentsFileName=startArguments.txt
 linesToSkip=0;
 startPointNumber=0;
 useSpecificDir=1;
+liczbaDanych=6; #6-normal, 2-freeEnergies [columns in Results file without cycles]
 
 #resultMerger
 newDirectoryName=merged;

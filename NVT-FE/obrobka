@@ -1,17 +1,17 @@
 #!/bin/bash
-#SBATCH --job-name=obrobka_sz
+#SBATCH --job-name=obrobka_FE
 #SBATCH -p std-1gpu
 #SBATCH --time=0-10:00:00
 #sbatch --no-requeue
 #SBATCH --output=OUT-sz_%j.txt
 #SBATCH --error=ERR-sz_%j.txt
 
-#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa -> opcja w MergerConfig.txt) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
+#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa -> opcja w MergerConfig.txt) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt +lambdaSets.txt] oraz filterCopy.jar + FilterConfig.txt
 #UWAGA: potrzeba w katalogu wywołania pliku 'startArguments.txt' - resultMerger patrzy w nim na listę ciśnień, po której ma składać foldery (stworzy po jednym folderze wynikowym dla każdego ciśnienia, zawierającym badania z zadanego przedziału). Program się zawiesi, jeżeli nie znajdzie folderu, z którymkolwiek ciśnieniem (wszystkie, które są w pliku, muszą być obecne w rzeczywistości). V/V_CP w pliku 'startArguments.txt' - jest całkowicie nieważne.
 
 cd $SLURM_SUBMIT_DIR;
 source scriptConfig;
-time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory};
+time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory} ${liczbaDanych};
 cd ${newDirectoryName};
 for ((point=${minPoint};point<${maxPoint};point++)); do
 for ((lambdaIndex=${additionalMinIndex};lambdaIndex<${additionalMaxIndex};lambdaIndex++)); do
@@ -22,7 +22,7 @@ time srun java -jar filterCopy.jar;
 
 #cd $PBS_O_WORKDIR;
 #source scriptConfig;
-#time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory};
+#time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory} ${liczbaDanych};
 #cd ${newDirectoryName};
 #for ((point=${minPoint};point<${maxPoint};point++)); do
 #for ((lambdaIndex=${additionalMinIndex};lambdaIndex<${additionalMaxIndex};lambdaIndex++)); do
