@@ -6,7 +6,7 @@
 #SBATCH --output=OUT-sz_%j.txt
 #SBATCH --error=ERR-sz_%j.txt
 
-#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa -> opcja w MergerConfig.txt) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
+#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
 #UWAGA: potrzeba w katalogu wywołania pliku 'startArguments.txt' - resultMerger patrzy w nim na listę ciśnień, po której ma składać foldery (stworzy po jednym folderze wynikowym dla każdego ciśnienia, zawierającym badania z zadanego przedziału). Program się zawiesi, jeżeli nie znajdzie folderu, z którymkolwiek ciśnieniem (wszystkie, które są w pliku, muszą być obecne w rzeczywistości). V/V_CP w pliku 'startArguments.txt' - jest całkowicie nieważne.
 
 cd $SLURM_SUBMIT_DIR;

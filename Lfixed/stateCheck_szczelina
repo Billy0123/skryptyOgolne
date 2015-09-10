@@ -42,6 +42,7 @@ for ((i=${minDirectory};i<=${maxDirectory};i++)); do
       rm fileD;
       rm fileDC;
       rm fileDCR;
+      cd ${startAdress};
    done
 done
 echo -e "\e[32mdone\e[0m";

@@ -1,4 +1,7 @@
 source scriptConfig;
+
+rm ${fileJobIDName} ${fileDirectoriesName} ${filePointsName} ${fileAdditionalIndexesName};
+
 #Comment: do dzialania program potrzebuje plikow z qstat/squeue. UWAGA: qstat domyslnie wyrzuca dane oddzielane spacjami (OK), ale squeue domyslnie (chyba) rzuca tabulacjami. Dlatego squeue trzeba uzyc formatujac output (na oddzialanie spacjami). Dodatkowo potrzeba pliku 'startArguments.txt' (odpowiednio ustawionego, czyli dla G=1)
 if [ ${queueSystem} = 0 ]; then
 squeue -u mb1991 -o "%i %P %j %T %M %D %R" > ${fileRunningJobsName}
