@@ -1,9 +1,9 @@
 #common (used in more than one script)
-N=780;
+N=224;
 G=0;
 gaps=0;
 mN=6;
-mS=0.01;
+mS=1.00;
 mD=1.000000;
 minDirectory=1
 maxDirectory=10
