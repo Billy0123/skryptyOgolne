@@ -1,0 +1,17 @@
+source scriptConfig;
+
+rm ${fileJobIDName} ${fileDirectoriesName} ${filePointsName} ${fileAdditionalIndexesName};
+
+#Comment: do dzialania program potrzebuje plikow z qstat/squeue. UWAGA: qstat domyslnie wyrzuca dane oddzielane spacjami (OK), ale squeue domyslnie (chyba) rzuca tabulacjami. Dlatego squeue trzeba uzyc formatujac output (na oddzialanie spacjami). Dodatkowo potrzeba pliku 'startArguments.txt' (odpowiednio ustawionego, czyli dla G=1)
+if [ ${queueSystem} = 0 ]; then
+squeue -u mb1991 -o "%i %P %j %T %M %D %R" > ${fileRunningJobsName}
+else 
+qstat -l | grep mb1991 > ${fileRunningJobsName}    #wystarcza zwykły qstat -u mb1991, ale taki jak podany zrzuci 'koncowki' nazw (gdy sa za dlugie) zamiast poczatkow (wyswietli je jako np. "bardzoDlugaNazwaJobu012345" -> "...azwaJobu012345" (zamiast "bardzoDlugaNazwaJ")
+fi
+java getmissingjobs ${minDirectory} ${maxDirectory} ${minPoint} ${maxPoint} ${maxJobID} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${startArgumentsFileName} ${fileRunningJobsName} ${filterText} ${fileJobIDName} ${startPreviousIteration} ${fileDirectoriesName}!${directoriesParameter} ${filePointsName}!${pointsParameter} ${rows} ${diskD}
+rm ${fileRunningJobsName}
+echo -e "\e[94mFinished building a list of missing jobs, starting reanimation...\e[0m";
+
+listLength=$(wc -l ${fileJobIDName} | cut -f1 -d' ');
+for((i=1;i<=${listLength};i++)); do ./reanimationSingle ${i} ${listLength}; done
+echo "";
