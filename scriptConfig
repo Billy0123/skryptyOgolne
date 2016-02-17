@@ -12,7 +12,7 @@ startArgumentsFileName=startArguments.txt
 #obrobka
 linesToSkip=0;
 startPointNumber=0;
-useSpecificDir=1;
+useSpecificDir=${minDirectory};
 liczbaDanych=6; #6-normal, 2-freeEnergies [columns in Results file without cycles]
 
 #resultMerger

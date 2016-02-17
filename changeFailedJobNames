@@ -1,0 +1,8 @@
+#UWAGA: 1) plik 'idies' musi byc potraktowany komenda "tr -d '\r' <idies>buffer" jezeli jest ciagniety z Windowsa; 2) zmiana qdel/scancel od systemu kolejkowego
+
+listLength=$(wc -l idies | cut -f1 -d' ');
+for ((i=1;i<=${listLength};i++)); do
+   ID=$(cat idies | head -n ${i} | tail -1);
+   echo "changing ${i}/${listLength}: jobID-${ID}";
+   qalter -N fail_cantDelete ${ID};
+done

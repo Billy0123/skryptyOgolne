@@ -10,15 +10,15 @@ echo -ne "\r\e[94mReanimation \e[32m${1}\e[94m/${2}: N-\e[31m${N}\e[94m, gaps-\e
 
 if [ ${reanimationSingleType} = 0 ]; then
 if [ ${queueSystem} = 0 ]; then
-sbatch -Q --job-name=${filterText}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt sbatchTMPRecursionStartNormalToOnePoint ${N} ${gaps} ${mS} ${mD} ${G} ${directory} ${point} $((${jobID} - 1)) 1 ${filterText};
+sbatch --job-name=${filterText}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt sbatchTMPRecursionStartNormalToOnePoint ${N} ${gaps} ${mS} ${mD} ${G} ${directory} ${point} $((${jobID} - 1)) 1 ${filterText};
 else
-qsub -z -N ${filterText}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${N},VAR2=${gaps},VAR3=${mS},VAR4=${mD},VAR5=${G},VAR6=${directory},VAR7=${point},VAR8=$((${jobID} - 1)),VAR9=1,filterText=${filterText} qsubTMPRecursionStartNormalToOnePoint;
+qsub -N ${filterText}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${N},VAR2=${gaps},VAR3=${mS},VAR4=${mD},VAR5=${G},VAR6=${directory},VAR7=${point},VAR8=$((${jobID} - 1)),VAR9=1,filterText=${filterText} qsubTMPRecursionStartNormalToOnePoint;
 fi
 else
 if [ ${queueSystem} = 0 ]; then
-sbatch -Q --job-name=${filterText}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt sbatchTMPRecursionOnePoint ${jobID} ${N} ${gaps} ${mS} ${mD} ${G} ${point} ${directory} $((${jobID} - 1)) ${filterText};
+sbatch --job-name=${filterText}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt sbatchTMPRecursionOnePoint ${jobID} ${N} ${gaps} ${mS} ${mD} ${G} ${point} ${directory} $((${jobID} - 1)) ${filterText};
 else
-qsub -z -N ${filterText}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${jobID},VAR2=${N},VAR3=${gaps},VAR4=${mS},VAR5=${mD},VAR6=${G},VAR7=${point},VAR8=${directory},VAR9=$((${jobID} - 1)),filterText=${filterText} qsubTMPRecursionOnePoint;
+qsub -N ${filterText}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${jobID},VAR2=${N},VAR3=${gaps},VAR4=${mS},VAR5=${mD},VAR6=${G},VAR7=${point},VAR8=${directory},VAR9=$((${jobID} - 1)),filterText=${filterText} qsubTMPRecursionOnePoint;
 fi
 fi
 

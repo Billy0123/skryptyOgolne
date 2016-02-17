@@ -1,0 +1,6 @@
+date >> watchdogOut;
+printf "\n" >> watchdogOut;
+./reanimationAll >>watchdogOut 2>&1;
+printf "====================\n" >> watchdogOut;
+sleep ${1};
+./watchdog ${1};
