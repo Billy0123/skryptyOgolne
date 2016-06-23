@@ -1,0 +1,25 @@
+source scriptConfig;
+qstat -u mb1991 > allJobs;
+rm multimerN directories points; 
+
+for ((i=50;i<=150;i+=3)); do 
+  cat allJobs | grep " ${i}-${N}H_" > joby;
+  liczbaJobow=$(cat joby | wc -l); 
+  if [ ${liczbaJobow} -lt $((${maxDirectory}-${minDirectory}+1)) ]; then  
+    for ((j=${minDirectory};j<=${maxDirectory};j++)); do
+      liczbaJobowSpecificDir=$(cat joby | grep B${j}P | wc -l);
+      if [ ${liczbaJobowSpecificDir} -eq 0 ]; then
+        p=$(($(ls 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${j}_mN-${i}_mS-${mS}_mD-${mD} | grep _Results | wc -l)-1)); 
+        if [ ${p} -lt $((${maxPoint}-1)) ]; then
+          echo ${p} >> ${filePointsName};
+          echo ${i} >> multimerN;
+          echo ${j} >> ${fileDirectoriesName};
+        fi; 
+      fi
+    done;
+  fi; 
+done;
+rm joby;
+rm allJobs;
+
+./reanimationSequence;

@@ -12,14 +12,14 @@
 #source scriptConfig;
 #time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory} ${liczbaDanych};
 #cd ${newDirectoryName};
-#time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir};
+#time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir} ${mN};
 #time srun java -jar filterCopy.jar;
 
 cd $PBS_O_WORKDIR;
 source scriptConfig;
 time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory} ${liczbaDanych};
 cd ${newDirectoryName};
-time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir};
+time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir} ${mN};
 time java -jar filterCopy.jar;
 
 

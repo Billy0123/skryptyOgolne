@@ -19,5 +19,9 @@ rm ${fileRunningJobsName}
 echo -e "\e[94mFinished building a list of missing jobs, starting reanimation...\e[0m";
 
 listLength=$(wc -l ${fileJobIDName} | cut -f1 -d' ');
-for((i=1;i<=${listLength};i++)); do ./reanimationSingle ${i} ${listLength}; done
+licznik=$(date +%s);
+for((i=1;i<=${listLength};i++)); do 
+  ./reanimationSingle ${i} ${listLength} ${licznik}; 
+  licznik=$((${licznik}+1));
+done
 echo "";
