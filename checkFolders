@@ -1,0 +1,46 @@
+type=${1} #6/9
+N=${2};
+if [ ${N} -eq 56 ]; then repeats=201; fi;
+if [ ${N} -eq 224 ]; then repeats=21; fi;
+if [ ${N} -eq 504 ]; then repeats=21; fi;
+if [ ${N} -eq 896 ]; then repeats=15; fi;
+liczbaPlikowDocelowo=$((6*11*${repeats}+3));
+index=${3}; #parametryzuje mN - dla 6: od 0 do 5, dla 9: od 1 do 27 ze skokiem co 2
+if [ ${type} -eq 6 ]; then mN=${type}; for ((i=0;i<${index};i++)); do mN=$((${mN}*2)); done; fi;
+if [ ${type} -eq 9 ]; then mN=$((${type}*${index})); fi;
+mD=${4};
+
+echo "mN: ${mN}";
+echo "mN: ${mN}">>checkFoldersOutput;
+ls ${type}n/${N} | grep _mN-${mN}_mS-1.00_mD-${mD} > file;
+fileLength=$(cat file | wc -l);
+for ((i=1;i<=${fileLength};i++)); do
+  echo "checking folder: ${i}/${fileLength}"; 
+  echo "checking folder: ${i}/${fileLength}">>checkFoldersOutput;
+  folderBuffer=$(cat file | head -n ${i} | tail -1);
+  folder=${type}n/${N}/${folderBuffer};
+
+  liczbaPlikow=$(ls ${folder} | wc -l);
+
+  if [ ${liczbaPlikow} -ne ${liczbaPlikowDocelowo} ]; then
+    echo "bad file number: ${folder}: ${liczbaPlikow}/${liczbaPlikowDocelowo}";
+    echo "bad file number: ${folder}: ${liczbaPlikow}/${liczbaPlikowDocelowo}" >> checkFoldersOutput;
+  fi;
+
+  ls ${folder} | grep _Results > fileFolderTmp;
+  sed -i "/j-${repeats}_/d" fileFolderTmp;
+  liczbaPlikow=$(cat fileFolderTmp | wc -l);
+  for ((j=1;j<=${liczbaPlikow};j++)); do
+    plik=$(cat fileFolderTmp | head -n ${j} | tail -1);
+    liczbaWierszy=$(cat ${folder}/${plik} | wc -l);
+    if [ ${liczbaWierszy} -ne 50000 ]; then
+      echo " -bad lines number in Results: ${folder}/${plik}: ${liczbaWierszy}/50000";
+      echo " -bad lines number in Results: ${folder}/${plik}: ${liczbaWierszy}/50000" >> checkFoldersOutput;
+    fi;
+    echo -ne "\rfile: ${j}/${liczbaPlikow}";
+  done;
+  echo "";
+  rm fileFolderTmp;
+
+done;
+rm file;

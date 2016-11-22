@@ -1,0 +1,33 @@
+N=504;
+
+mN=6; 
+#mN=9;
+
+mD=1.000000;
+G=1;
+folder=variousN-variousn_CP-thermdLimit/${mN}n/${N};
+
+for ((i=0;i<${1};i++)); do mN=$((${mN}*2)); done;
+#mN=$((${mN}*${1}));
+
+increase=10;
+liczbaFolderow=20;
+actualMaxJobID=11;
+actualMinJobID=1;
+
+listLength=$(wc -l ${folder}/startArguments.txt | cut -f1 -d' ');
+for ((j=1;j<=${listLength};j++)); do
+ PRESSURE=$(cut -f2 ${folder}/startArguments.txt | head -n ${j} | tail -1);
+ for ((i=1;i<=${liczbaFolderow};i++)); do 
+  for ((k=${actualMaxJobID};k>=${actualMinJobID};k--)); do
+   mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-${k}_OrientatRes_arg-${PRESSURE}.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-$((${k}+${increase}))_OrientatRes_arg-${PRESSURE}.txt;
+   mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-${k}_Orientations_arg-${PRESSURE}.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-$((${k}+${increase}))_Orientations_arg-${PRESSURE}.txt;
+   mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-${k}_Configurations_arg-${PRESSURE}.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}.txt;
+   mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-${k}_OrientatRes_arg-${PRESSURE}_allOnt.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-$((${k}+${increase}))_OrientatRes_arg-${PRESSURE}_allOnt.txt;
+   mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-${k}_Orientations_arg-${PRESSURE}_allOnt.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-$((${k}+${increase}))_Orientations_arg-${PRESSURE}_allOnt.txt;
+   mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}_Results.txt;
+   #mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-${k}_Configurations_arg-${PRESSURE}_transient.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mS-1.00_mD-${mD}/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}_transient.txt;
+  done
+ done
+ echo "completed changing for press: ${j}";
+done

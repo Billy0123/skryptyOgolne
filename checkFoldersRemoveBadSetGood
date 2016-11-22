@@ -1,0 +1,42 @@
+cat checkFoldersOutput | grep "bad lines number" > checkFoldersOutputBad;
+listLength=$(cat checkFoldersOutputBad | wc -l);
+
+for ((i=1;i<=$listLength;i++)); do 
+  array=( $(cat checkFoldersOutputBad | head -n ${i} | tail -1) );
+  adres=${array[5]};
+  file=${adres::${#adres}-1};
+  rm $file;
+done;
+
+N=896; mD=0.666666; maxDirectory=30; maxJobIndex=15;
+#for ((j=0;j<=5;j++)); do 
+#  mN=6; folder=6n/${N}; for ((i=0;i<${j};i++)); do mN=$((${mN}*2)); done;
+for ((j=1;j<=27;j+=2)); do 
+  mN=9; folder=9n/${N}; mN=$((${mN}*${j}));
+
+  startArgumentsLength=$(wc -l ${folder}/startArguments.txt | cut -f1 -d' ');
+  for ((k=1;k<=${maxDirectory};k++)); do
+    for ((i=1;i<=${startArgumentsLength};i++)); do
+      PRESSURE=$(cut -f2 ${folder}/startArguments.txt | head -n ${i} | tail -1);
+      actualFolder=${folder}/2D_N-${N}_gaps-0_G-1_badanie-${k}_mN-${mN}_mS-1.00_mD-${mD};
+      change=0;
+      for ((m=${maxJobIndex};m>=1;m--)); do
+        plikODanymJobID=$(ls ${actualFolder} | grep j-${m}_Configurations_arg-${PRESSURE}_Results.txt | wc -l);
+	if [ ${plikODanymJobID} -eq 0 ]; then
+    	  change=$((${change}+1)); 
+        elif [ ${change} -gt 0 ]; then
+  	  mv -f ${actualFolder}/j-${m}_Configurations_arg-${PRESSURE}_Results.txt ${actualFolder}/j-$((${m}+${change}))_Configurations_arg-${PRESSURE}_Results.txt;
+	  mv -f ${actualFolder}/j-${m}_OrientatRes_arg-${PRESSURE}.txt ${actualFolder}/j-$((${m}+${change}))_OrientatRes_arg-${PRESSURE}.txt
+	  mv -f ${actualFolder}/j-${m}_Orientations_arg-${PRESSURE}.txt ${actualFolder}/j-$((${m}+${change}))_Orientations_arg-${PRESSURE}.txt
+	  mv -f ${actualFolder}/j-${m}_Configurations_arg-${PRESSURE}.txt ${actualFolder}/j-$((${m}+${change}))_Configurations_arg-${PRESSURE}.txt
+	  mv -f ${actualFolder}/j-${m}_OrientatRes_arg-${PRESSURE}_allOnt.txt ${actualFolder}/j-$((${m}+${change}))_OrientatRes_arg-${PRESSURE}_allOnt.txt
+	  mv -f ${actualFolder}/j-${m}_Orientations_arg-${PRESSURE}_allOnt.txt ${actualFolder}/j-$((${m}+${change}))_Orientations_arg-${PRESSURE}_allOnt.txt
+          echo "changing for: ${change} (${m} to $((${m}+${change})))";
+	fi;
+      done;
+    done;
+    echo "mD:${mD}, mN:${mN}, DIR: ${k}/${maxDirectory}";
+  done;
+done;
+
+rm checkFoldersOutputBad;
