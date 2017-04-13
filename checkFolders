@@ -32,7 +32,7 @@ for ((i=1;i<=${fileLength};i++)); do
   liczbaPlikow=$(cat fileFolderTmp | wc -l);
   for ((j=1;j<=${liczbaPlikow};j++)); do
     plik=$(cat fileFolderTmp | head -n ${j} | tail -1);
-    liczbaWierszy=$(cat ${folder}/${plik} | wc -l);
+    liczbaWierszy=$(wc -l < ${folder}/${plik});
     if [ ${liczbaWierszy} -ne 50000 ]; then
       echo " -bad lines number in Results: ${folder}/${plik}: ${liczbaWierszy}/50000";
       echo " -bad lines number in Results: ${folder}/${plik}: ${liczbaWierszy}/50000" >> checkFoldersOutput;

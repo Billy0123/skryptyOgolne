@@ -13,7 +13,7 @@ startArgumentsFileName=startArguments.txt
 linesToSkip=0;
 startPointNumber=0;
 useSpecificDir=${minDirectory};
-liczbaDanych=3; #3-normal, 2-freeEnergies [columns in Results file without cycles]
+liczbaDanych=2; #2-normal, 2-freeEnergies [columns in Results file -1]
 
 #resultMerger
 newDirectoryName=merged;

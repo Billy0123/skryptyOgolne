@@ -1,6 +1,7 @@
 source scriptConfig;
 qstat -u mb1991 > allJobs;
-rm multimerN directories points; 
+#squeue -u mb1991 -o "%i %P %j %T %M %l %D %R" > allJobs;
+rm multimerN ${fileDirectoriesName} ${filePointsName}; 
 
 for ((i=50;i<=150;i+=3)); do 
   cat allJobs | grep " ${i}-${N}H_" > joby;
