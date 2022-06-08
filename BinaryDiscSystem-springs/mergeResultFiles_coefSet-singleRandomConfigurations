@@ -1,0 +1,30 @@
+#use this file from folder 'merged'
+LANG=C; #%.3E w printf'ie bedzie uzywal kropki a nie (jak domyslnie w bashu) przecinka
+source ../scriptConfig;
+
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  printf "directory=${i}\n" >> ResultsSummary.txt
+  for ((initMode=7;initMode<=7;initMode++)); do
+    if [ ${initMode} -gt 0 -a ${initMode} -le 2 ]; then N=168;
+    elif [ ${initMode} -gt 2 -a ${initMode} -le 4 ]; then N=196;
+    elif [ ${initMode} -gt 4 -a ${initMode} -le 6 ]; then N=192;
+    else N=56; fi;
+    printf "initMode=${initMode}\n" >> ResultsSummary.txt
+    for ((coefSet=0;coefSet<=5;coefSet++)); do
+      alpha=$(printf "%.3E" $((10**coefSet)));
+      beta=$(printf "%.3E" $((10**(coefSet*2))));
+      if [ \( ${initMode} -eq 0 -a ${coefSet} -eq 0 \) -o \( ${initMode} -gt 0 -a ${coefSet} -eq 1 \) ]; then
+        printf "coefSet\t" >> ResultsSummary.txt
+        head -n 1 filteredFiles/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB}/ResultsSummary.txt | tail -1 >> ResultsSummary.txt
+      fi;
+      if [ \( ${initMode} -eq 0 -a ${coefSet} -eq 0 \) -o \( ${initMode} -gt 0 -a ${coefSet} -gt 0 \) ]; then
+        printf "${coefSet}\t" >> ResultsSummary.txt
+        head -n 2 filteredFiles/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB}/ResultsSummary.txt | tail -1 >> ResultsSummary.txt
+      fi;
+    done;
+    printf "\n\n" >> ResultsSummary.txt
+  done;
+  printf "\n\n" >> ResultsSummary.txt
+done;
+
+

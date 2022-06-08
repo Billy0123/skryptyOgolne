@@ -1,0 +1,23 @@
+source scriptConfig;
+initMode=$1;
+beta=$2;
+parM=$(cut -f1 fileParams | head -n $3 | tail -1);
+parN=$(cut -f2 fileParams | head -n $3 | tail -1);
+N=$(cut -f3 fileParams | head -n $3 | tail -1);
+parXCells=$(cut -f4 fileParams | head -n $3 | tail -1);
+parYCells=$(cut -f5 fileParams | head -n $3 | tail -1);
+point=$4; #od 1 (jak linia w startArguments.txt)
+rm -r confs_N-${N}_iM-${initMode}_beta-${beta}_pM-${parM}_pN-${parN}; mkdir confs_N-${N}_iM-${initMode}_beta-${beta}_pM-${parM}_pN-${parN};
+
+#listLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  #for ((j=${minPoint};j<${maxPoint};j++)); do
+  j=$((${point}-1));
+    if [ ${G} = 1 ]; then
+      PRESSURE=$(cut -f2 startArguments.txt | head -n $((${j} + 1)) | tail -1);
+    else
+      PRESSURE=$(cut -f2 startArguments.txt | head -n $((${listLength} - ${j})) | tail -1);
+    fi
+    cp pM-${parM}_pN-${parN}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-1_Configurations_arg-${PRESSURE}.txt confs_N-${N}_iM-${initMode}_beta-${beta}_pM-${parM}_pN-${parN}/conf_dir-$(printf "%03d" ${i})_arg-$(printf "%03d" ${j})_p-${PRESSURE};
+  #done;
+done;

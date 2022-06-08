@@ -1,0 +1,26 @@
+folder=$1;  #adres do folderu, zawierającego foldery, zawierające badania, czyli np. gdy badania są w folderze: ./QWE/ASD/ZXC/*_badanie-*, należy podać QWE/ASD (foldery na 'poziomie' równym ZXC [i zawierające badania] będą pakowane do osobnych archiwów)
+printf "working master-folder: ${folder}\n\n";
+
+cd ${folder};
+for f in $(ls); do 
+  if [ -d ${f} -a ! -f ${f}.tar.gz -a $(ls ${f} | grep _badanie- | wc -l) -gt 0 ]; then
+    printf "[$(date +"%F, %T")]\tgenerating outline for folder:\t${f}";
+    tar -czf ${f}.outline.tar.gz ${f} --exclude=*/ERR* --exclude=*/OUT* --exclude=*/j-*.txt --exclude=*.err --exclude=*/ProbDensDist* --exclude=*_badanie-* --exclude=*.tar.*;
+    if [ $? -ne 0 ]; then 
+      mv -f ${f}.outline.tar.gz ${f}.outline.tar.gz.err;
+      printf " ->\terror ($(du -hs ${f}.outline.tar.gz.err --apparent-size | cut -f1), process for this folder stopped)\n\n";
+    else
+      printf " ->\tdone ($(du -hs ${f}.outline.tar.gz --apparent-size | cut -f1))\n[$(date +"%F, %T")]\tcompressing folder:\t\t${f}";
+      tar -czf ${f}.tar.gz ${f} --exclude=*/output* --exclude=*/merged* --exclude=*/confs* --exclude=*ConfigurationsList.txt;
+      if [ $? -ne 0 ]; then 
+        mv -f ${f}.tar.gz ${f}.tar.gz.err;
+        printf " ->\terror ($(du -hs ${f}.tar.gz.err --apparent-size | cut -f1), process for this folder stopped)\n\n";
+      else
+        printf " ->\tdone ($(du -hs ${f}.tar.gz --apparent-size | cut -f1))\n[$(date +"%F, %T")]\tremoving folder:\t\t${f}";
+        rm -r ${f};
+        printf " ->\tdone\n\n";
+      fi;
+    fi;
+  fi;
+done;
+cd;

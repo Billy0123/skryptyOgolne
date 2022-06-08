@@ -1,0 +1,25 @@
+cd BSS/largeSystems_2/;
+source scriptConfig;
+deltaDiameter=$(cat fileDeltaDiameters | head -n ${1} | tail -1);
+
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  printf "Testing ${i}/${maxDirectory} directory...\n";
+  ls 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta} | grep Configurations | grep -v _Results | grep -v .err > fileList;
+  fileLength=$(wc -l fileList | cut -f1 -d' ');
+  for ((j=1;j<=${fileLength};j++)); do
+    
+    IFS=' '; stringArray=($(cut -f1 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/$(cat fileList | head -n ${j} | tail -1) | tail -1)); 
+    IFS='='; textWithDescription=(${stringArray[0]}); IFS=','; textWithDescription=(${textWithDescription[1]}); Hxx=${textWithDescription[0]};
+    IFS='='; textWithDescription=(${stringArray[1]}); IFS=','; textWithDescription=(${textWithDescription[1]}); Hyy=${textWithDescription[0]};
+    IFS='='; textWithDescription=(${stringArray[2]}); IFS=','; textWithDescription=(${textWithDescription[1]}); Hzz=${textWithDescription[0]};
+
+    IFS=' '; ratios=($(awk "BEGIN {xy=sqrt((${Hxx}-${Hyy})^2)/${Hxx}; xz=sqrt((${Hxx}-${Hzz})^2)/${Hxx}; printf \"%.10f %.10f\n\",xy,xz}")) || echo "ERROR - file: 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/$(cat fileList | head -n ${j} | tail -1)";
+    if [[ ${ratios[0]} > 0.01 || ${ratios[1]} > 0.01 ]]; then
+      echo "WARNING - file: 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/$(cat fileList | head -n ${j} | tail -1), |Hxx-Hyy|/Hxx=${ratios[0]}, |Hxx-Hzz|/Hxx=${ratios[1]}";
+    fi;
+  done;
+done;
+
+
+rm fileList;
+cd;

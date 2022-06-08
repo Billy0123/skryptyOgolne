@@ -1,0 +1,31 @@
+#!/bin/bash
+#SBATCH --job-name=SCMIPobrobka
+#SBATCH -p fast
+#SBATCH --time=0-01:00:00
+#SBATCH --no-requeue
+#SBATCH --output=OUT-obrobka.txt
+#SBATCH --error=ERR-obrobka.txt
+
+#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
+
+cd $SLURM_SUBMIT_DIR;
+source scriptConfig;
+
+#time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${T} ${polydisperseDelta} ${invPotPower} ${minDirectory} ${maxDirectory} ${liczbaDanych};
+mkdir ${newDirectoryName};
+mkdir ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((k=$((${maxJobID}-1));k>=1;k--)); do
+  for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+    for ((j=1;j<=${startArgumentsLength};j++)); do
+      PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+    done;
+  done;
+done;
+
+cd ${newDirectoryName};
+time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${G} ${startPointNumber} 0 ${useSpecificDir} ${T} ${polydisperseDelta} ${invPotPower};
+time srun java -jar filterCopy.jar;
+
+exit 0

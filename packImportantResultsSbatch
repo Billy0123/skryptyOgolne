@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH --job-name=packIR
+#SBATCH -p standard
+#SBATCH --time=7-0:0:0
+#sbatch --no-requeue
+#SBATCH --output=packIR_%j-OUT.txt
+#SBATCH --error=packIR_%j-ERR.txt
+
+cd $SLURM_SUBMIT_DIR
+
+time ./packImportantResults $1;
+
+#time tar -cjvf eagleResults_HCTetra.tar.bz2 HCTetra --exclude=*output* --exclude=*merged* --exclude=*confs* --exclude=*ConfigurationsList.txt --exclude=*ResultsSummary.txt --exclude=*Orientat* --exclude=*fixed-A* --exclude=*fixed-B* --exclude=*fixed-C* --exclude=*fixed-D* --exclude=*fixed-E* --exclude=*generateDistanceFiles*

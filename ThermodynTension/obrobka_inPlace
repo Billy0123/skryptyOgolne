@@ -1,0 +1,27 @@
+source scriptConfig;
+
+mD=$(cut -f1 fileStartArguments | head -n ${1} | tail -1);
+minPoint=$(cut -f2 fileStartArguments | head -n ${1} | tail -1);
+maxPoint=$(cut -f3 fileStartArguments | head -n ${1} | tail -1);
+additionalMinIndex=$(cut -f4 fileStartArguments | head -n ${1} | tail -1);
+additionalMaxIndex=$((${additionalMinIndex} + 1));
+
+listLength=$(wc -l ${startArgumentsFileName} | cut -f1 -d' ');
+time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mD} ${minDirectory} ${maxDirectory} ${additionalMinIndex} ${additionalMaxIndex} ${liczbaDanych};
+cd ${newDirectoryName};
+for ((pointNumberP=${additionalMinIndex};pointNumberP<${additionalMaxIndex};pointNumberP++)); do
+   time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mD} ${G} ${minPoint} $((${maxPoint}-${minPoint})) ${useSpecificDir} ${pointNumberP};
+done
+#time srun java -jar filterCopy.jar;
+
+#cd $PBS_O_WORKDIR;
+#source scriptConfig;
+#listLength=$(wc -l ${startArgumentsFileName} | cut -f1 -d' ');
+#time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mD} ${minDirectory} ${maxDirectory} ${liczbaDanych};
+#cd ${newDirectoryName};
+#for ((pointNumberP=0;pointNumberP<${listLength};pointNumberP++)); do
+#   time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mD} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${useSpecificDir} ${pointNumberP};
+#done
+#time java -jar filterCopy.jar;
+
+cd ..;

@@ -1,0 +1,38 @@
+#!/bin/bash
+#SBATCH --job-name=SCMIPobrobka
+#SBATCH -p fast
+#SBATCH --time=0-01:00:00
+#SBATCH --no-requeue
+#SBATCH --output=OUT-obrobka.txt
+#SBATCH --error=ERR-obrobka.txt
+
+#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
+
+cd $SLURM_SUBMIT_DIR;
+source scriptConfig;
+N=${1};
+mD=$(cat fileDiameters | head -n ${2} | tail -1);
+T=$(cat fileTemperatures | head -n ${3} | tail -1);
+G=${4};
+
+#time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${T} ${minDirectory} ${maxDirectory} ${liczbaDanych};
+mkdir ${newDirectoryName};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  mkdir ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_mN-${mN}_mS-${mS}_mD-${mD}_T-${T};
+  for ((k=${maxJobID};k>=1;k--)); do
+    for ((j=1;j<=${startArgumentsLength};j++)); do
+      PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_mN-${mN}_mS-${mS}_mD-${mD}_T-${T}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_mN-${mN}_mS-${mS}_mD-${mD}_T-${T}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+    done;
+  done;
+  cd ${newDirectoryName};
+  time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${minPoint} $((${maxPoint}-${minPoint})) ${i} ${mN} ${T};
+  cd ..;
+done;
+
+cd ${newDirectoryName};
+time srun java -jar filterCopy.jar;
+
+
+exit 0

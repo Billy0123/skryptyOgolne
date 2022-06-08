@@ -15,7 +15,7 @@ time srun java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN}
 cd ${newDirectoryName};
 for ((point=${minPoint};point<${maxPoint};point++)); do
 for ((lambdaIndex=${additionalMinIndex};lambdaIndex<${additionalMaxIndex};lambdaIndex++)); do
-   time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${point} 1 ${useSpecificDir} ${lambdaIndex};
+   time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${point} 1 ${useSpecificDir} ${lambdaIndex} ${mN};
 done
 done
 time srun java -jar filterCopy.jar;
@@ -26,7 +26,7 @@ time srun java -jar filterCopy.jar;
 #cd ${newDirectoryName};
 #for ((point=${minPoint};point<${maxPoint};point++)); do
 #for ((lambdaIndex=${additionalMinIndex};lambdaIndex<${additionalMaxIndex};lambdaIndex++)); do
-#   time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${point} 1 ${useSpecificDir} ${lambdaIndex};
+#   time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${point} 1 ${useSpecificDir} ${lambdaIndex} ${mN};
 #done
 #done
 #time java -jar filterCopy.jar;

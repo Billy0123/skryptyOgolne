@@ -1,0 +1,27 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+rm ResultsSummary-single.txt;
+
+N=${1};
+
+for ((mDIterator=1;mDIterator<=7;mDIterator++)); do
+  mD=$(cat ../fileDiameters | head -n ${mDIterator} | tail -1);
+  printf "mD=${mD}\n" >> ResultsSummary-single.txt
+  for ((TIterator=1;TIterator<=3;TIterator++)); do
+    T=$(cat ../fileTemperatures | head -n ${TIterator} | tail -1);
+    printf "T=${T}\n" >> ResultsSummary-single.txt
+    for ((G=0;G<=1;G++)); do   
+      printf "G=${G}\n" >> ResultsSummary-single.txt
+      for ((dir=${minDirectory};dir<=${maxDirectory};dir++)); do
+        printf "dir: ${dir}\n" >> ResultsSummary-single.txt
+        cat filteredFiles/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dir}_mN-${mN}_mS-${mS}_mD-${mD}_T-${T}/ResultsSummary.txt >> ResultsSummary-single.txt
+      done;
+      printf "\n" >> ResultsSummary-single.txt
+    done;
+    printf "\n" >> ResultsSummary-single.txt
+  done;
+  printf "\n" >> ResultsSummary-single.txt
+done;
+
+
+

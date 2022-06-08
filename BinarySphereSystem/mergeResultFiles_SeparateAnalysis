@@ -1,0 +1,14 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+resFileName=ResultsSummary-separateAnalysis.txt;
+rm ${resFileName};
+
+deltaDiameter=$(cat ../fileDeltaDiameters | head -n ${1} | tail -1);
+for ((startIteration=1;startIteration<=110;startIteration++)); do 
+   printf "ID paczki 1mln cykli\t${startIteration}\n" >> ${resFileName};
+   dirNum=$((20000+${startIteration}));
+   cat 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt >> ${resFileName};
+   printf "\n" >> ${resFileName}
+done;
+
+

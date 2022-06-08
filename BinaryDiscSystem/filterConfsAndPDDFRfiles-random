@@ -1,0 +1,15 @@
+N=2028; 
+folder=PDDFR; mkdir ${folder}; 
+inM=7; LANG=C; 
+for ((p=1;p<=12;p++)); do 
+  PRESSURE=$(cut -f2 startArguments.txt | head -n ${p} | tail -1); 
+  for ((beta=0;beta<=1;beta++)); do 
+    for ((d=2;d<=2;d++)); do 
+      delta=1.000E-0${d}; 
+      for ((i=1;i<=20;i++)); do 
+        cp 2D_N-${N}_gaps-0_G-1_badanie-${i}_D-${delta}_inM-${inM}_a-0_b-${beta}/ProbDensDistFunRes_arg-${PRESSURE}_N-${N}_inM-${inM}.txt ${folder}/PDDFR_arg-${PRESSURE}_b-${i}_d-${delta}_beta-$(printf "%.3E" ${beta}).txt; 
+        cp 2D_N-${N}_gaps-0_G-1_badanie-${i}_D-${delta}_inM-${inM}_a-0_b-${beta}/j-none_Configurations_arg-${PRESSURE}.txt ${folder}/conf_inM-${inM}_arg-${PRESSURE}_b-${i}_delta-${delta}_beta-${beta}.txt; 
+      done; 
+    done; 
+  done; 
+done;

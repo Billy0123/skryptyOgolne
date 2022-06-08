@@ -1,0 +1,36 @@
+source scriptConfig;
+licznik=$(date +%s);
+mkdir -p output;
+filterText=${1};
+
+#ustawienia specyficzne dla problemu
+iterationsNumber=1;
+mD=$(cut -f1 fileStartArguments | head -n ${2} | tail -1);
+minPoint=$(cut -f2 fileStartArguments | head -n ${2} | tail -1);
+maxPoint=$(cut -f3 fileStartArguments | head -n ${2} | tail -1);
+additionalIndex=$(cut -f4 fileStartArguments | head -n ${2} | tail -1);
+N=${3};
+
+#standardowa pętla
+listLength=$(wc -l ${fileDirectoriesName} | cut -f1 -d' ');
+for((i=1;i<=${listLength};i++)); do 
+  directory=$(cat ${fileDirectoriesName} | head -n ${i} | tail -1);
+  point=$(cat ${filePointsName} | head -n ${i} | tail -1); #loadowany(from 0)
+  if [ ${point} -lt ${minPoint} ]; then
+    point=${minPoint};
+    echo "starting ${i}/${listLength}: point-${point}, directory-${directory}";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch -Q --job-name=${filterText}G${G}C${additionalIndex}B${directory}P${point}D${mD} --output=output/OUT_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_B-${directory}_P-${point}_C-${additionalIndex}_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_B-${directory}_P-${point}_C-${additionalIndex}_%j.txt sbatchTMPRecursionStartNormal ${N} ${gaps} ${mD} ${G} ${iterationsNumber} ${directory} ${maxPoint} ${point} ${filterText} ${licznik} ${additionalIndex} ${maxJobID};
+    else
+      qsub -N ${filterText}G${G}C${additionalIndex}B${directory}P${point}D${mD} -v VAR1=${N},VAR2=${gaps},VAR3=${mD},VAR4=${G},VAR5=${iterationsNumber},VAR6=${directory},VAR7=${maxPoint},VAR8=${point},filterText=${filterText},VAR9=${licznik},VAR10=${additionalIndex},VAR11=${maxJobID} qsubTMPRecursionStartNormal;
+    fi
+  else
+    echo "reanimating ${i}/${listLength}: point-${point}, directory-${directory}";
+    if [ ${queueSystem} = 0 ]; then
+    sbatch --job-name=${filterText}G${G}C${additionalIndex}B${directory}P$((${point} + 1))D${mD} --output=output/OUT_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_C-${additionalIndex}_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_C-${additionalIndex}_%j.txt sbatchTMPRecursion ${maxJobID} ${N} ${gaps} ${mD} ${G} ${point} ${iterationsNumber} ${directory} ${maxPoint} ${filterText} ${additionalIndex} ${licznik};
+    else
+    qsub -N ${filterText}G${G}C${additionalIndex}B${directory}P$((${point} + 1))D${mD} -o output/OUT_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_C-${additionalIndex}_prevJobID-REANIMATED.txt -e output/ERR_HCH${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_C-${additionalIndex}_prevJobID-REANIMATED.txt -v VAR1=${maxJobID},VAR2=${N},VAR3=${gaps},VAR4=${mD},VAR5=${G},VAR6=${point},VAR7=${iterationsNumber},VAR8=${directory},VAR9=${maxPoint},filterText=${filterText},VAR10=${additionalIndex},VAR11=${licznik} qsubTMPRecursion;
+    fi
+  fi
+  licznik=$((${licznik}+1));
+done

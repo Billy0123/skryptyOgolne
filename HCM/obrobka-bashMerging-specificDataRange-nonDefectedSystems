@@ -1,0 +1,38 @@
+source scriptConfig;
+
+useSpecificDir=2; #####
+
+#DOSTOSOWAĆ DO BADANIA
+linesInIteration=20; linesInResultsFile=20;
+jobIDBase=${maxJobID}; #zmienna ma wskazywać na 'pierwszy' (czyli o najwyższym jobID, w przypadku badań OnePoint) plik, wchodzący do badań
+
+startIteration=1; 
+iterationsNumber=1; #1-pojedyncze 'linesInIteration' linii zaczynane od 1+'startIteration-1'*linesInIteration. Zatem dla np. 'separatywnych 50k' nalezy wyzwalac ($2 i $3: 1 1 (pierwsze 50k), 2 1 (drugie 50k),  3 1, 4 1, 5 1, itd.). Wieksze wartosci beda 'akumulowaly' kolejne 'linesInIteration', zatem dla np. 'ostatnich 100k linii', nalezy: 9 2, dla 'ostatnich 200k linii': 7 4, itd. Program uwzględnia przechodzenie do 'kolejnych' plików (jobID), jeżeli dana iteracja przekracza 'linesInResultsFile'.
+
+mkdir ${newDirectoryName};
+mkdir ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_mN-${mN}_mS-${mS}_mD-${mD};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((a=0;a<${iterationsNumber};a++)); do
+  startLine=$((1+(${startIteration}-1+${a})*${linesInIteration}));
+  jobID=${jobIDBase};
+  while [ ${startLine} -gt ${linesInResultsFile} ]; do
+    startLine=$((${startLine}-${linesInResultsFile}));
+    jobID=$((${jobID}-1));
+  done;
+  
+  #for ((i=${minDirectory};i<=${maxDirectory};i++)); do #####
+  nonDefectedDirsListLength=$(wc -l listOfDirsOfNonDefectedSystems | cut -f1 -d' ');
+  for ((dirIndex=1;dirIndex<=${nonDefectedDirsListLength};dirIndex++)); do 
+    i=$(cat listOfDirsOfNonDefectedSystems | head -n ${dirIndex} | tail -1);
+
+    for ((j=1;j<=${startArgumentsLength};j++)); do
+      PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_mN-${mN}_mS-${mS}_mD-${mD}/j-${jobID}_Configurations_arg-${PRESSURE}_Results.txt | head -n $((${startLine}-1+${linesInIteration})) | tail -n ${linesInIteration} >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_mN-${mN}_mS-${mS}_mD-${mD}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+    done;
+  done;
+done;
+
+cd ${newDirectoryName};
+time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir} ${mN};
+
+exit 0

@@ -1,0 +1,8 @@
+squeue -u mb1991 -o "%i" > file
+listLength=$(wc -l file | cut -f1 -d' ');
+for ((i=1;i<=${listLength};i++)); do
+   ID=$(cat file | head -n ${i} | tail -1);
+   echo "deleting ${i}/${listLength}: jobID-${ID}";
+   scancel ${ID};
+   #qdel ${ID};
+done

@@ -1,0 +1,29 @@
+#use this file from folder 'merged'
+
+for ((initMode=0;initMode<=6;initMode++)); do
+  if [ ${initMode} -le 2 ]; then N=168;
+  elif [ ${initMode} -le 4 ]; then N=196;
+  else N=192; fi;
+  printf "initMode=${initMode}\n" >> ResultsSummary_inM-${initMode}.txt
+  for ((coefSet=1;coefSet<=3;coefSet++)); do
+    if [ ${coefSet} -eq 1 ]; then alpha=1.0000; beta=1.0000;
+    elif [ ${coefSet} -eq 2 ]; then alpha=10.0000; beta=100.0000;
+    else alpha=100.0000; beta=10000.0000; fi;
+    printf "alpha=${alpha}, beta=${beta}\n" >> ResultsSummary_inM-${initMode}.txt
+    for ((TIndex=1;TIndex<=3;TIndex++)); do 
+      if [ ${TIndex} -eq 1 ]; then T=0.010000;
+      elif [ ${TIndex} -eq 2 ]; then T=0.001000;
+      else T=0.000100; fi;
+      
+      if [ ${TIndex} -eq 1 ]; then
+        printf "T\t" >> ResultsSummary_inM-${initMode}.txt
+        head -n 1 filteredFiles/2D_N-${N}_gaps-0_G-1_badanie-1_D-0.100000_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB}/ResultsSummary.txt | tail -1 >> ResultsSummary_inM-${initMode}.txt
+      fi;
+      printf "${T}\t" >> ResultsSummary_inM-${initMode}.txt
+      head -n 2 filteredFiles/2D_N-${N}_gaps-0_G-1_badanie-1_D-0.100000_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB}/ResultsSummary.txt | tail -1 >> ResultsSummary_inM-${initMode}.txt
+    done;
+    printf "\n" >> ResultsSummary_inM-${initMode}.txt
+  done;
+done;
+
+

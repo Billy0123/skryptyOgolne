@@ -1,0 +1,26 @@
+N=3120;
+G=0;
+folder=BDS-homoHetero-longerHistRunInsidePhaseTrans;
+rm ${folder}/*/*.err;
+
+increase=90;
+liczbaFolderow=5;
+actualMaxJobID=10;
+actualMinJobID=1;
+startPressurePointNumber=1;  #licząc od 1 - czytanie wierszy w pliku
+endPressurePointNumber=$(wc -l ${folder}/startArguments.txt | cut -f1 -d' ');
+
+for ((j=${startPressurePointNumber};j<=${endPressurePointNumber};j++)); do
+ PRESSURE=$(cut -f2 ${folder}/startArguments.txt | head -n ${j} | tail -1);
+ for ((l=5;l<=5;l++)); do 
+  deltaDiameter=$(cat ${folder}/deltaList | head -n ${l} | tail -1);
+  for ((i=1;i<=${liczbaFolderow};i++)); do 
+   for ((k=${actualMaxJobID};k>=${actualMinJobID};k--)); do
+    mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-7_a-0_b-0/j-${k}_Configurations_arg-${PRESSURE}.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-7_a-0_b-0/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}.txt;
+    mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-7_a-0_b-0/j-${k}_Configurations_arg-${PRESSURE}_Results.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-7_a-0_b-0/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}_Results.txt;
+    mv ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-7_a-0_b-0/j-${k}_Configurations_arg-${PRESSURE}_transient.txt ${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-7_a-0_b-0/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}_transient.txt;
+   done
+  done
+  echo "completed changing for press: ${j}";
+ done
+done

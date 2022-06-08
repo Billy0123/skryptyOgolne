@@ -1,0 +1,24 @@
+N=256; #4000;
+deltaDiameter=1.000E-08; #1.000E-03;  #deltaDiameter=2.000E-02;
+G=1;
+folder=BSS/N-256_long_sequence_4; #BSS/largeSystems;  #folder=BSS/largeSystems_2;
+
+increase=80;
+minDirectory=1;
+maxDirectory=100;
+actualMaxJobID=70;   #800
+actualMinJobID=1;
+startPressurePointNumber=42;  #startPressurePointNumber=14;  #licząc od 1 - czytanie wierszy w pliku
+endPressurePointNumber=50;  #endPressurePointNumber=14;  #licząc od 1 - czytanie wierszy w pliku startArguments.txt
+
+#endPressurePointNumber=$(wc -l ${folder}/startArguments.txt | cut -f1 -d' ');
+for ((j=${startPressurePointNumber};j<=${endPressurePointNumber};j++)); do
+ PRESSURE=$(cut -f2 ${folder}/startArguments.txt | head -n ${j} | tail -1);
+ for ((i=${minDirectory};i<=${maxDirectory};i++)); do 
+  for ((k=${actualMaxJobID};k>=${actualMinJobID};k--)); do
+   mv ${folder}/3D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-0_a-0_b-1/j-${k}_Configurations_arg-${PRESSURE}.txt ${folder}/3D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-0_a-0_b-1/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}.txt;
+   mv ${folder}/3D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-0_a-0_b-1/j-${k}_Configurations_arg-${PRESSURE}_Results.txt ${folder}/3D_N-${N}_gaps-0_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-0_a-0_b-1/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}_Results.txt;
+  done
+ done
+ echo "completed changing for press: ${j}";
+done

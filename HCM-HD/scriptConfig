@@ -20,9 +20,6 @@ liczbaDanych=2; #2-normal, 2-freeEnergies [columns in Results file without cycle
 #resultMerger
 newDirectoryName=merged;
 
-#reanimationSingle
-reanimationSingleType=1 #0-start,1-continuation
-
 #getMissingJobs & start/reanimateSequence
 queueSystem=0 #0-SLURM (Cane, Chimera), 1-PBS/Torque (Reef, Inula)
 minPoint=0 #from 0

@@ -1,0 +1,61 @@
+source scriptConfig;
+resultsFilesFilterCommand="ls \${actualDir} | grep \${PRESSURE} | grep j-\${k}_ | grep Results.txt | grep -v .err"; #usunąć ostatni grep, aby uwzględniać pliki .err
+
+initMode=$(cut -f1 fileParams | head -n $1 | tail -1);
+N=$(cut -f2 fileParams | head -n $1 | tail -1);
+echo "obrobka dla initMode: ${initMode}, N: ${N}";
+
+mkdir ${newDirectoryName};
+outFolder=2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+mkdir ${newDirectoryName}/${outFolder};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  actualDir=2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+  for ((j=$((${minPoint}+1));j<=${maxPoint};j++)); do
+    PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+    IDMAX=$((${maxJobID}+1));
+    for ((k=${maxJobID};k>=1;k--)); do
+      resultsFilesListLength=$(eval ${resultsFilesFilterCommand} | wc -l);
+      if [ ${resultsFilesListLength} -gt 0 -a ${IDMAX} -gt ${maxJobID} ]; then IDMAX=${k}; fi;
+      for ((l=1;l<=${resultsFilesListLength};l++)); do
+        resultsFile=$(eval ${resultsFilesFilterCommand} | head -n ${l} | tail -1);
+        if [ ${k} -eq ${IDMAX} ]; then 
+          printf "skipping first - dir:${i}, point:${j}, ID:${k}\n"
+          #printf "merging first - dir:${i}, point:${j}, ID:${k}\n"
+          #cat ${actualDir}/${resultsFile} | tail -n 5000 >> ${newDirectoryName}/${outFolder}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+        else
+          printf "merging other - dir:${i}, point:${j}, ID:${k}\n"
+          cat ${actualDir}/${resultsFile} >> ${newDirectoryName}/${outFolder}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+        fi;
+      done; 
+    done;
+  done;
+done;
+
+#pamiętać, żeby initMody !=60 i 61 uruchomić NA RAZ, ale te re-entrantowe trzeba czekać aż job matematyczny się zakończy (bo będą sobie podmieniać config)
+if [ ${initMode} -eq 60 -o ${initMode} -eq 61 ]; then cp -f config-${N}.txt ${newDirectoryName}/config.txt; fi;
+cd ${newDirectoryName};
+./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${useSpecificDir} ${alpha} ${beta};
+#time srun java -jar filterCopy.jar;
+
+
+#cd $PBS_O_WORKDIR;
+#source scriptConfig;
+#mkdir ${newDirectoryName};
+#mkdir ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+#startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+#for ((k=$((${maxJobID}-1));k>=1;k--)); do
+#  for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+#    for ((j=1;j<=${startArgumentsLength};j++)); do
+#      PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+#      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+#    done;
+#  done;
+#done;
+#
+#cd ${newDirectoryName};
+#time ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${useSpecificDir} ${alpha} ${beta};
+#time java -jar filterCopy.jar;
+
+
+exit 0

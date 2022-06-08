@@ -1,0 +1,16 @@
+printf "WATCHDOGINPLACE - date: $(date):\n\n";
+printf "all jobs:\t"; count=$(squeue -u mb1991 | wc -l); printf "$((${count}-1))\n";
+printf "running jobs:\t"; squeue -u mb1991 | grep " R " | wc -l;
+printf "\n";
+
+
+#  cd BSS/N-32_long_sequence; ./reanimationSequenceAll 1; ./reanimationAll 1; cd;
+  cd BSS/N-108_long_sequence; #./reanimationSequenceAll 1; 
+./reanimationAll 1; cd;
+#  cd BSS/N-256_long_sequence_4; ./reanimationAll 1; cd; 
+
+
+
+printf "\n\n";
+printf "all jobs:\t"; count=$(squeue -u mb1991 | wc -l); printf "$((${count}-1))\n";
+printf "running jobs:\t"; squeue -u mb1991 | grep " R " | wc -l;

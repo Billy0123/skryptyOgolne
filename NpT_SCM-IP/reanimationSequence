@@ -1,0 +1,35 @@
+source scriptConfig;
+licznik=$(date +%s);
+mkdir -p output;
+filterText=${1};
+
+#ustawienia specyficzne dla problemu
+iterationsNumber=5;
+N=${2};
+mD=${3};
+T=${4};
+G=${5};
+
+#standardowa pętla
+listLength=$(wc -l ${fileDirectoriesName} | cut -f1 -d' ');
+for((i=1;i<=${listLength};i++)); do 
+  directory=$(cat ${fileDirectoriesName} | head -n ${i} | tail -1);
+  point=$(cat ${filePointsName} | head -n ${i} | tail -1); #loadowany(from 0)
+  if [ ${point} -lt ${minPoint} ]; then
+    point=${minPoint};
+    echo "starting ${i}/${listLength}: point-${point}, directory-${directory}";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch -Q --job-name=${filterText}G${G}B${directory}P${point} --output=output/OUT_HC${mN}_${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_T-${T}_%j.txt --error=output/ERR_HC${mN}_${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-${point}_T-${T}_%j.txt sbatchTMPRecursionStartNormal ${N} ${gaps} ${mS} ${mD} ${G} ${iterationsNumber} ${directory} ${maxPoint} ${point} ${filterText} ${licznik} ${mN} ${maxJobID} ${T};
+    else
+      qsub -N ${filterText}G${G}B${directory}P${point} -v VAR1=${N},VAR2=${gaps},VAR3=${mS},VAR4=${mD},VAR5=${G},VAR6=${iterationsNumber},VAR7=${directory},VAR8=${maxPoint},VAR9=${point},filterText=${filterText},VAR10=${licznik},VAR11=${mN},VAR12=${maxJobID},VAR13=${T} qsubTMPRecursionStartNormal;
+    fi
+    licznik=$((${licznik}+1));
+  else
+    echo "reanimating ${i}/${listLength}: point-${point}, directory-${directory}";
+    if [ ${queueSystem} = 0 ]; then
+    sbatch --job-name=${filterText}G${G}B${directory}P$((${point} + 1)) --output=output/OUT_HC${mN}_${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_T-${T}_%j.txt --error=output/ERR_HC${mN}_${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_T-${T}_%j.txt sbatchTMPRecursion ${maxJobID} ${N} ${gaps} ${mS} ${mD} ${G} ${point} ${iterationsNumber} ${directory} ${maxPoint} ${filterText} ${mN} ${T};
+    else
+    qsub -N ${filterText}G${G}B${directory}P$((${point} + 1)) -o output/OUT_HC${mN}_${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_T-${T}_prevJobID-REANIMATED.txt -e output/ERR_HC${mN}_${N}_gaps-${gaps}_mS-${mS}_mD-${mD}_G-${G}_B-${directory}_P-$((${point} + 1))_T-${T}_prevJobID-REANIMATED.txt -v VAR1=${maxJobID},VAR2=${N},VAR3=${gaps},VAR4=${mS},VAR5=${mD},VAR6=${G},VAR7=${point},VAR8=${iterationsNumber},VAR9=${directory},VAR10=${maxPoint},filterText=${filterText},VAR11=${mN},VAR12=${T} qsubTMPRecursion;
+    fi
+  fi
+done

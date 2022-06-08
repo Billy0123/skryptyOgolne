@@ -2,22 +2,42 @@ source scriptConfig;
 
 rm ${fileJobIDName} ${fileDirectoriesName} ${filePointsName} ${fileAdditionalIndexesName};
 
+mD=$(cut -f1 fileStartArguments | head -n ${1} | tail -1);
+minPoint=$(cut -f2 fileStartArguments | head -n ${1} | tail -1);
+maxPoint=$(cut -f3 fileStartArguments | head -n ${1} | tail -1);
+additionalMinIndex=$(cut -f4 fileStartArguments | head -n ${1} | tail -1);
+additionalMaxIndex=$((${additionalMinIndex} + 1));
+filterText=d${mD}pInd${additionalMinIndex}_;
+
 #Comment: do dzialania program potrzebuje plikow z qstat/squeue. UWAGA: qstat domyslnie wyrzuca dane oddzielane spacjami (OK), ale squeue domyslnie (chyba) rzuca tabulacjami. Dlatego squeue trzeba uzyc formatujac output (na oddzialanie spacjami). Dodatkowo potrzeba pliku 'startArguments.txt' (odpowiednio ustawionego, czyli dla G=1)
+queueDownloadSuccess=0;
 if [ ${queueSystem} = 0 ]; then
-squeue -u mb1991 -o "%i %P %j %T %M %D %R" > ${fileRunningJobsName}
+  squeue -u mb1991 -o "%i %P %j %T %M %l %D %R" > ${fileRunningJobsName};
+  if [ "$(cat ${fileRunningJobsName} | head -n 1 | tail -1)" == "JOBID PARTITION NAME STATE TIME TIME_LIMIT NODES NODELIST(REASON)" ]; then queueDownloadSuccess=1; fi;
 else 
-qstat -l | grep mb1991 > ${fileRunningJobsName}    #wystarcza zwykły qstat -u mb1991, ale taki jak podany zrzuci 'koncowki' nazw (gdy sa za dlugie) zamiast poczatkow (wyswietli je jako np. "bardzoDlugaNazwaJobu012345" -> "...azwaJobu012345" (zamiast "bardzoDlugaNazwaJ")
+  qstat -l | grep mb1991 > ${fileRunningJobsName}    #wystarcza zwykły qstat -u mb1991, ale taki jak podany zrzuci 'koncowki' nazw (gdy sa za dlugie) zamiast poczatkow (wyswietli je jako np. "bardzoDlugaNazwaJobu012345" -> "...azwaJobu012345" (zamiast "bardzoDlugaNazwaJ")
+  queueDownloadSuccess=1; #UWAGA: BRAK TESTU ISTNIENIA PLIKU KOLEJKI - NALEŻY TO SPRAWDZIĆ
 fi
 
-listLength=$(wc -l reanimationAllExceptions | cut -f1 -d' ');
-for((j=1;j<=${listLength};j++)); do 
-  sed -i "/$(cat reanimationAllExceptions | head -n ${j} | tail -1)/d" ${fileRunningJobsName};
-done;
+if [ ${queueDownloadSuccess} = 1 ]; then
+  echo "Job list downloaded successfully. Starting reanimation...";
 
-java getmissingjobs ${minDirectory} ${maxDirectory} ${minPoint} ${maxPoint} ${maxJobID} ${N} ${gaps} ${G} ${mN} ${mD} ${startArgumentsFileName} ${fileRunningJobsName} ${filterText} ${fileJobIDName} ${startPreviousIteration} ${fileDirectoriesName}!${directoriesParameter} ${filePointsName}!${pointsParameter} ${fileAdditionalIndexesName}!${additionalIndexesParameter}
-rm ${fileRunningJobsName}
-echo -e "\e[94mFinished building a list of missing jobs, starting reanimation...\e[0m";
+  listLength=$(wc -l reanimationAllExceptions | cut -f1 -d' ');
+  for((j=1;j<=${listLength};j++)); do 
+    sed -i "/$(cat reanimationAllExceptions | head -n ${j} | tail -1)/d" ${fileRunningJobsName};
+  done;
 
-listLength=$(wc -l ${fileJobIDName} | cut -f1 -d' ');
-for((i=1;i<=${listLength};i++)); do ./reanimationSingle ${i} ${listLength}; done
-echo "";
+  java getmissingjobs ${minDirectory} ${maxDirectory} ${minPoint} ${maxPoint} ${additionalMinIndex} ${additionalMaxIndex} ${maxJobID} ${N} ${gaps} ${G} ${mN} ${mD} ${startArgumentsFileName} ${fileRunningJobsName} ${filterText} ${fileJobIDName} ${startPreviousIteration} ${fileDirectoriesName}!${directoriesParameter} ${filePointsName}!${pointsParameter} ${fileAdditionalIndexesName}!${additionalIndexesParameter}
+  echo -e "\e[94mFinished building the list of missing jobs, starting reanimation...\e[0m";
+
+  listLength=$(wc -l ${fileJobIDName} | cut -f1 -d' ');
+  licznik=$(date +%s);
+  for((i=1;i<=${listLength};i++)); do 
+    ./reanimationSingle ${filterText} ${i} ${listLength} ${licznik} ${mD}; 
+    licznik=$((${licznik}+1));
+  done
+  echo "";
+else echo "Couldn't download job list. Aborting reanimation...";
+fi;
+
+rm ${fileRunningJobsName};

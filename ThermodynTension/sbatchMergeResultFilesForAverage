@@ -1,0 +1,59 @@
+#!/bin/bash
+#SBATCH --job-name=merger
+#SBATCH -p fast
+#SBATCH --time=0-01:00:00
+#SBATCH --mem-per-cpu=100M
+#SBATCH --no-requeue
+#SBATCH --output=OUT_merger_%j.txt
+#SBATCH --error=ERR_merger_%j.txt
+
+#use this file from folder 'merged', after using 'obrobka_inPlace-specificDataRange-sequence' for single folders and HIGH jobIDMAX
+source ../scriptConfig;
+
+mD=$(cut -f1 ../fileStartArguments | head -n ${1} | tail -1);
+minPoint=$(cut -f2 ../fileStartArguments | head -n ${1} | tail -1);
+maxPoint=$(cut -f3 ../fileStartArguments | head -n ${1} | tail -1);
+additionalMinIndex=$(cut -f4 ../fileStartArguments | head -n ${1} | tail -1);
+additionalMaxIndex=$(cut -f5 ../fileStartArguments | head -n ${1} | tail -1);
+minDirectory=$(cut -f6 ../fileStartArguments | head -n ${1} | tail -1);
+maxDirectory=$((${minDirectory}+10-1));
+N=${2};
+point=${3};
+
+listLength=$(wc -l ${startArgumentsFileName} | cut -f1 -d' ');
+if [ ${G} -eq 0 ]; then 
+  PRESSURE=$(cut -f5 ${startArgumentsFileName} | head -n $((listLength-additionalMinIndex)) | tail -1);
+else 
+  PRESSURE=$(cut -f5 ${startArgumentsFileName} | head -n $((additionalMinIndex+1)) | tail -1);
+fi;
+if [ ${G} = 1 ]; then
+  tXX=$(cut -f2 ${startArgumentsFileName} | head -n $((${point} + 1)) | tail -1);
+  tYY=$(cut -f3 ${startArgumentsFileName} | head -n $((${point} + 1)) | tail -1);
+  tXY=$(cut -f4 ${startArgumentsFileName} | head -n $((${point} + 1)) | tail -1);
+else
+  tXX=$(cut -f2 ${startArgumentsFileName} | head -n $((${listLength} - ${point})) | tail -1);
+  tYY=$(cut -f3 ${startArgumentsFileName} | head -n $((${listLength} - ${point})) | tail -1);
+  tXY=$(cut -f4 ${startArgumentsFileName} | head -n $((${listLength} - ${point})) | tail -1);
+fi;
+mkdir $TMPDIR/lustre/mb1991/tmp_mb1991_$SLURM_JOB_ID;
+cd $TMPDIR/lustre/mb1991/tmp_mb1991_$SLURM_JOB_ID;
+outputFolder=2D_N-${N}_gaps-${gaps}_G-${G}_badanie-$((${maxDirectory}+101))_mN-${mN}_mD-${mD}_p-${PRESSURE};
+mkdir ${outputFolder};
+for ((dir=$((${minDirectory}+100));dir<=$((${maxDirectory}+100));dir++)); do
+  cp $SLURM_SUBMIT_DIR/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dir}_mN-${mN}_mD-${mD}_p-${PRESSURE}/j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt ./j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results-${dir}.txt;
+done;
+fileLength=$(wc -l j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results-$((${minDirectory}+100)).txt | cut -f1 -d' '); 
+printf "cycle\t" >> ${outputFolder}/j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt;
+for ((dir=${minDirectory};dir<=${maxDirectory};dir++)); do
+  printf "H00_${dir}\tH11_${dir}\tH01_${dir}\t" >> ${outputFolder}/j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt;
+done;
+printf "\n" >> ${outputFolder}/j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt;
+for ((line=1;line<=${fileLength};line++)); do
+  printf "$((${line}*1000))\t" >> ${outputFolder}/j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt;
+  for ((dir=$((${minDirectory}+100));dir<=$((${maxDirectory}+100));dir++)); do
+    printf "$(cat j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results-${dir}.txt | head -n ${line} | tail -1)" >> ${outputFolder}/j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt;
+  done;
+  printf "\n" >> ${outputFolder}/j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt;
+done;
+cp -fr ${outputFolder} $SLURM_SUBMIT_DIR;
+rm -r $TMPDIR/lustre/mb1991/tmp_mb1991_$SLURM_JOB_ID;

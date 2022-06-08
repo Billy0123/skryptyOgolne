@@ -1,0 +1,33 @@
+source scriptConfig;
+filterText=BDS${N}_;
+
+#qstat -u mb1991 > ${fileRunningJobsName};
+squeue -u mb1991 -o "%i %P %j %T %M %l %D %R" > ${fileRunningJobsName};
+
+if [ "$(cat ${fileRunningJobsName} | head -n 1 | tail -1)" == "JOBID PARTITION NAME STATE TIME TIME_LIMIT NODES NODELIST(REASON)" ]; then
+  echo "Job list downloaded successfully. Starting reanimation...";
+  rm ${fileDirectoriesName} ${filePointsName}; 
+
+  cat ${fileRunningJobsName} | grep " ${filterText}G${G}" > joby; #UWAGA: Uwzględnić filtrację!
+  liczbaJobow=$(cat joby | wc -l); 
+  if [ ${liczbaJobow} -lt $((${maxDirectory}-${minDirectory}+1)) ]; then  
+    for ((j=${minDirectory};j<=${maxDirectory};j++)); do
+      liczbaJobowSpecificDir=$(cat joby | grep B${j}P | wc -l);
+      if [ ${liczbaJobowSpecificDir} -eq 0 ]; then
+        errorFiles=$(ls 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${j}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB} | grep _Results.txt.err | wc -l);
+        p=$(($(ls 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${j}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB} | grep _Results | wc -l)+${minPoint}-1-${startPreviousIteration}-${errorFiles})); 
+        if [ ${p} -lt $((${maxPoint}-1-${startPreviousIteration})) ]; then
+          echo ${p} >> ${filePointsName};
+          echo ${j} >> ${fileDirectoriesName};
+        fi; 
+      fi
+    done;
+  fi; 
+  rm joby;
+
+  ./reanimationSequence ${filterText};
+else echo "Couldn't download job list. Aborting reanimation...";
+fi;
+
+rm ${fileRunningJobsName};
+

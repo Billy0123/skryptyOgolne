@@ -1,0 +1,53 @@
+#!/bin/bash
+#SBATCH --job-name=obrobka_ac
+#SBATCH -p fast
+#SBATCH --time=0-01:00:00
+#SBATCH --no-requeue
+#SBATCH --output=OUT-ac_%j.txt
+#SBATCH --error=ERR-ac_%j.txt
+
+cd $SLURM_SUBMIT_DIR;
+source scriptConfig;
+
+startPointNumber=${2}; #!!CHANGED
+maxPoint=$((${startPointNumber}+1)); #!!CHANGED
+linesToSkip=0; #!!CHANGED
+
+deltaDiameter=$(cat fileDeltaDiameters | head -n ${1} | tail -1);
+
+#DOSTOSOWAĆ DO BADANIA
+linesInIteration=1000; linesInResultsFile=10000;
+jobIDBase=11; #zmienna ma wskazywać na 'pierwszy' (czyli o najwyższym jobID, w przypadku badań OnePoint) plik, wchodzący do badań
+
+startIteration=$3; 
+iterationsNumber=$4; #1-pojedyncze 'linesInIteration' linii zaczynane od 1+'startIteration-1'*linesInIteration. Zatem dla np. 'separatywnych 1000k' nalezy wyzwalac ($2 i $3: 1 1 (pierwszy 1000k), 2 1 (drugi 1000k),  3 1, 4 1, 5 1, itd.). Wieksze wartosci beda 'akumulowaly' kolejne 'linesInIteration', zatem dla np. 'ostatnich 2000k linii', nalezy: 9 2, dla 'ostatnich 4000k linii': 7 4, itd. Program uwzględnia przechodzenie do 'kolejnych' plików (jobID), jeżeli dana iteracja przekracza 'linesInResultsFile'.
+
+mkdir -p ${newDirectoryName};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((a=0;a<${iterationsNumber};a++)); do
+  startLine=$((1+(${startIteration}-1+${a})*${linesInIteration}));
+  jobID=${jobIDBase};
+  while [ ${startLine} -gt ${linesInResultsFile} ]; do
+    startLine=$((${startLine}-${linesInResultsFile}));
+    jobID=$((${jobID}-1));
+  done;
+  
+  #for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  for ((buffi=${minDirectory};buffi<=${maxDirectory};buffi++)); do i=$((10000+${buffi}+${iterationsNumber}*100)); #!!CHANGED
+    mkdir -p ${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+    #for ((j=1;j<=${startArgumentsLength};j++)); do
+    for ((j=${maxPoint};j<=${maxPoint};j++)); do #!!CHANGED
+      PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+      #cat 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${jobID}_Configurations_arg-${PRESSURE}_Results.txt | head -n $((${startLine}-1+${linesInIteration})) | tail -n ${linesInIteration} >> ${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+      cat 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${buffi}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${jobID}_Configurations_arg-${PRESSURE}_Results.txt | head -n $((${startLine}-1+${linesInIteration})) | tail -n ${linesInIteration} >> ${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt; #!!CHANGED
+    done;
+  done;
+done;
+
+cd ${newDirectoryName};
+#for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+for ((buffi=${minDirectory};buffi<=${maxDirectory};buffi++)); do i=$((10000+${buffi}+${iterationsNumber}*100)); #!!CHANGED
+  time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${i} ${alpha} ${beta};
+done;
+
+exit 0

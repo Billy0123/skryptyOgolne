@@ -1,0 +1,45 @@
+#!/bin/bash
+#SBATCH --job-name=BDSobrobka
+#SBATCH -p standard
+#SBATCH --time=1-00:00:00
+#SBATCH --no-requeue
+#SBATCH --output=OUT-obrobka.txt
+#SBATCH --error=ERR-obrobka.txt
+
+#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
+
+cd $SLURM_SUBMIT_DIR;
+source scriptConfig;
+
+initMode=$1;
+coefSet=$2;  #0-a1b1,1-a10b100,2-a100b10000,...
+
+if [ ${initMode} -gt 0 -a ${initMode} -le 2 ]; then N=168;
+elif [ ${initMode} -gt 2 -a ${initMode} -le 4 ]; then N=196;
+elif [ ${initMode} -gt 4 -a ${initMode} -le 6 ]; then N=192;
+else N=56; fi;
+
+LANG=C; #%.3E w printf'ie bedzie uzywal kropki a nie (jak domyslnie w bashu) przecinka
+alpha=$(printf "%.3E" $((10**coefSet)));
+beta=$(printf "%.3E" $((10**(coefSet*2))));
+
+mkdir ${newDirectoryName};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  mkdir ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB};
+  for ((k=$((${maxJobID}-1));k>=1;k--)); do
+    for ((j=1;j<=${startArgumentsLength};j++)); do
+      PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}_T-${T}_pB-${parB}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+    done;
+  done;
+done;
+
+cd ${newDirectoryName};
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${i} ${alpha} ${beta} ${T} ${parB};
+done;
+time srun java -jar filterCopy.jar;
+
+
+exit 0

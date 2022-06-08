@@ -1,0 +1,32 @@
+source scriptConfig;
+mkdir -p output;
+filterText=${1};
+
+jobID=$(cat ${fileJobIDName} | head -n ${2} | tail -1);
+directory=$(cat ${fileDirectoriesName} | head -n ${2} | tail -1);
+point=$(cat ${filePointsName} | head -n ${2} | tail -1);
+
+initMode=${5};
+N=${6};  
+alpha=${7};
+
+if [ ${jobID} -gt $((1+${startPreviousIteration})) ]; then
+  if [ ${jobID} -ge ${maxJobID} ]; then
+    jobID=${maxJobID};
+    echo -ne "\r\e[94mStarting \e[32m${2}\e[94m/${3}: N-\e[31m${N}\e[94m, gaps-\e[31m${gaps}\e[94m, D-\e[31m${deltaDiameter}\e[94m, inM-\e[31m${initMode}\e[94m, alpha-\e[31m${alpha}\e[94m, beta-\e[31m${beta}\e[94m, T-\e[31m${T}\e[94m, parB-\e[31m${parB}\e[94m, G-\e[31m${G}\e[94m, jobID-\e[31mnone(start)\e[94m, B-\e[31m${directory}\e[94m, P-\e[31m${point}\e[94m, R-\e[31m$((${jobID} - 1))\e[0m        ";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch --job-name=${filterText}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_BDS${N}_gaps-${gaps}_D-${deltaDiameter}_inM-${initMode}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_a-${alpha}_b-${beta}_T-${T}_pB-${parB}_%j.txt --error=output/ERR_BDS${N}_gaps-${gaps}_D-${deltaDiameter}_inM-${initMode}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_a-${alpha}_b-${beta}_T-${T}_pB-${parB}_%j.txt sbatchTMPRecursionStartNormalToOnePoint ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${directory} ${point} $((${jobID} - 1)) 1 ${filterText} ${4} ${alpha} ${beta} ${T} ${parB};
+    else
+      qsub -N ${filterText}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${N},VAR2=${gaps},VAR3=${deltaDiameter},VAR4=${initMode},VAR5=${G},VAR6=${directory},VAR7=${point},VAR8=$((${jobID} - 1)),VAR9=1,filterText=${filterText},VAR10=${4},VAR11=${alpha},VAR12=${beta},VAR13=${T},VAR14=${parB} qsubTMPRecursionStartNormalToOnePoint;
+    fi
+  else
+    echo -ne "\r\e[94mReanimating \e[32m${2}\e[94m/${3}: N-\e[31m${N}\e[94m, gaps-\e[31m${gaps}\e[94m, D-\e[31m${deltaDiameter}\e[94m, inM-\e[31m${initMode}\e[94m, alpha-\e[31m${alpha}\e[94m, beta-\e[31m${beta}\e[94m, T-\e[31m${T}\e[94m, parB-\e[31m${parB}\e[94m, G-\e[31m${G}\e[94m, jobID-\e[31m${jobID}\e[94m, B-\e[31m${directory}\e[94m, P-\e[31m${point}\e[94m, R-\e[31m$((${jobID} - 1))\e[0m        ";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch --job-name=${filterText}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_BDS${N}_gaps-${gaps}_D-${deltaDiameter}_inM-${initMode}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_a-${alpha}_b-${beta}_T-${T}_pB-${parB}_%j.txt --error=output/ERR_BDS${N}_gaps-${gaps}_D-${deltaDiameter}_inM-${initMode}_G-${G}_B-${directory}_P-${point}_R-$((${jobID} - 1))_a-${alpha}_b-${beta}_T-${T}_pB-${parB}_%j.txt sbatchTMPRecursionOnePoint ${jobID} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${point} ${directory} $((${jobID} - 1)) ${filterText} ${alpha} ${beta} ${T} ${parB};
+    else
+      qsub -N ${filterText}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${jobID},VAR2=${N},VAR3=${gaps},VAR4=${deltaDiameter},VAR5=${initMode},VAR6=${G},VAR7=${point},VAR8=${directory},VAR9=$((${jobID} - 1)),filterText=${filterText},VAR10=${alpha},VAR11=${beta},VAR12=${T},VAR13=${parB} qsubTMPRecursionOnePoint;
+    fi
+  fi
+else
+  echo -ne "\r\e[94mReanimation \e[32m${2}\e[94m/${3}: job completed\e[0m                                   ";
+fi

@@ -1,0 +1,47 @@
+source scriptConfig;
+resultsFilesFilterCommand="ls \${actualDir} | grep \${PRESSURE} | grep j-\${k}_ | grep Results.txt | grep -v .err"; #usunąć ostatni grep, aby uwzględniać pliki .err
+
+initMode=$1;
+beta=$2;
+parM=$(cut -f1 ${folder}/fileParams | head -n $3 | tail -1);
+parN=$(cut -f2 ${folder}/fileParams | head -n $3 | tail -1);
+N=$(cut -f3 ${folder}/fileParams | head -n $3 | tail -1);
+parXCells=$(cut -f4 ${folder}/fileParams | head -n $3 | tail -1);
+parYCells=$(cut -f5 ${folder}/fileParams | head -n $3 | tail -1);
+echo "obrobka dla initMode: ${initMode}, beta: ${beta}, N: ${N}, parM: ${parM}, parN: ${parN}";
+
+mkdir ${newDirectoryName};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  actualDir=2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+  mkdir ${newDirectoryName}/${actualDir};
+  for ((j=$((${minPoint}+1));j<=${maxPoint};j++)); do
+    PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+    IDMAX=$((${maxJobID}+1));
+    for ((k=${maxJobID};k>=1;k--)); do
+      resultsFilesListLength=$(eval ${resultsFilesFilterCommand} | wc -l);
+      if [ ${resultsFilesListLength} -gt 0 -a ${IDMAX} -gt ${maxJobID} ]; then IDMAX=${k}; fi;
+      for ((l=1;l<=${resultsFilesListLength};l++)); do
+        resultsFile=$(eval ${resultsFilesFilterCommand} | head -n ${l} | tail -1);
+        if [ ${k} -eq ${IDMAX} ]; then 
+          printf "skipping first - dir:${i}, point:${j}, ID:${k}\n"
+          #printf "merging first - dir:${i}, point:${j}, ID:${k}\n"
+          #cat ${actualDir}/${resultsFile} | tail -n 5000 >> ${newDirectoryName}/${actualDir}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+        else
+          printf "merging other - dir:${i}, point:${j}, ID:${k}\n"
+          cat ${actualDir}/${resultsFile} >> ${newDirectoryName}/${actualDir}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+        fi;
+      done;
+    done;
+  done;
+done;
+
+#pamiętać, że trzeba czekać aż job matematyczny się zakończy (bo będą sobie podmieniać config)
+cp -f config-${parM}-${parN}.txt ${newDirectoryName}/config.txt; 
+cd ${newDirectoryName};
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  time ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${i} ${alpha} ${beta};
+done;
+
+
+exit 0

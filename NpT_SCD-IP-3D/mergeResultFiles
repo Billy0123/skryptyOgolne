@@ -1,0 +1,17 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+rm ResultsSummary.txt;
+
+for ((iPPIterator=1;iPPIterator<=3;iPPIterator++)); do
+  invPotPower=$(cat ../filePotPower | head -n ${iPPIterator} | tail -1);
+  printf "iPP=${invPotPower}\n" >> ResultsSummary.txt 
+  for ((TIterator=1;TIterator<=6;TIterator++)); do
+    T=$(cat ../fileTemperatures | head -n ${TIterator} | tail -1);
+    printf "T=${T}\n" >> ResultsSummary.txt
+    cat 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}/ResultsSummary.txt >> ResultsSummary.txt
+  done;
+  printf "\n" >> ResultsSummary.txt
+done;
+
+
+

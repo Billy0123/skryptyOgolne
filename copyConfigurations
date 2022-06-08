@@ -1,0 +1,17 @@
+source scriptConfig;
+N=${1};
+minPoint=${2};
+maxPoint=${3};
+rm -r confs_N-${N}; mkdir confs_N-${N};
+
+listLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  for ((j=${minPoint};j<${maxPoint};j++)); do
+    if [ ${G} = 1 ]; then
+      PRESSURE=$(cut -f2 startArguments.txt | head -n $((${j} + 1)) | tail -1);
+    else
+      PRESSURE=$(cut -f2 startArguments.txt | head -n $((${listLength} - ${j})) | tail -1);
+    fi
+    cp 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_mN-${mN}_mS-${mS}_mD-${mD}/j-${maxJobID}_Configurations_arg-${PRESSURE}.txt confs_N-${N}/conf_dir-$(printf "%03d" ${i})_arg-$(printf "%03d" ${j})_p-${PRESSURE};
+  done;
+done;

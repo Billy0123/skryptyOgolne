@@ -1,0 +1,41 @@
+#common (used in more than one script)
+N=112;
+G=0;
+gaps=0;
+T=1.000E+00;  #T*
+polydisperseDelta=1.000E-01;
+invPotPower=1.000E+03;
+minDirectory=1
+maxDirectory=10
+startArgumentsFileName=startArguments.txt
+
+#obrobka
+linesToSkip=0;
+startPointNumber=0;
+useSpecificDir=${minDirectory};
+liczbaDanych=2; #2-normal, 2-freeEnergies [columns in Results file -1]
+
+#resultMerger
+newDirectoryName=merged;
+
+#getMissingJobs & start/reanimateSequence
+queueSystem=0 #0-SLURM (Cane, Chimera), 1-PBS/Torque (Reef, Inula)
+minPoint=0 #from 0
+maxPoint=12 #max+1 from 0
+maxJobID=22 #startRepeats+1
+fileRunningJobsName=file
+filterText=Z_
+fileJobIDName=jobIDs
+startPreviousIteration=0 #repeatsLeft: jobID-1+startPreviousIteration
+fileDirectoriesName=directories
+directoriesParameter=B
+filePointsName=points
+pointsParameter=P
+#additional
+fileAdditionalIndexesName=additionalIndexes
+additionalIndexesParameter=C
+additionalMinIndex=0 #from 0 [row in additional file]
+additionalMaxIndex=1 #max+1 from 0 [row in additional file]
+
+#INFO
+printf "\nscriptConfig loaded...\n\n";

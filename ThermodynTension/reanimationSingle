@@ -1,0 +1,30 @@
+source scriptConfig;
+mkdir -p output;
+filterText=${1};
+mD=${5};
+
+jobID=$(cat ${fileJobIDName} | head -n ${2} | tail -1);
+directory=$(cat ${fileDirectoriesName} | head -n ${2} | tail -1);
+point=$(cat ${filePointsName} | head -n ${2} | tail -1);
+additionalIndex=$(cat ${fileAdditionalIndexesName} | head -n ${2} | tail -1);
+
+if [ ${jobID} -gt $((1+${startPreviousIteration})) ]; then
+  if [ ${jobID} -ge ${maxJobID} ]; then
+    jobID=${maxJobID};
+    echo -ne "\r\e[94mStarting \e[32m${2}\e[94m/${3}: N-\e[31m${N}\e[94m, gaps-\e[31m${gaps}\e[94m, mD-\e[31m${mD}\e[94m, G-\e[31m${G}\e[94m, jobID-\e[31mnone(start)\e[94m, C-\e[31m${additionalIndex}\e[94m, B-\e[31m${directory}\e[94m, P-\e[31m${point}\e[94m, R-\e[31m$((${jobID} - 1))\e[0m        ";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch -Q --job-name=${filterText}C${additionalIndex}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_C-${additionalIndex}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_C-${additionalIndex}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt sbatchTMPRecursionStartNormalToOnePoint ${N} ${gaps} ${mD} ${G} ${directory} ${point} $((${jobID} - 1)) ${additionalIndex} ${filterText} ${4};
+    else
+      qsub -z -N ${filterText}C${additionalIndex}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${N},VAR2=${gaps},VAR3=${mD},VAR4=${G},VAR5=${directory},VAR6=${point},VAR7=$((${jobID} - 1)),VAR8=${additionalIndex},filterText=${filterText},VAR9=${4} qsubTMPRecursionStartNormalToOnePoint;
+    fi
+  else
+    echo -ne "\r\e[94mReanimating \e[32m${2}\e[94m/${3}: N-\e[31m${N}\e[94m, gaps-\e[31m${gaps}\e[94m, mD-\e[31m${mD}\e[94m, G-\e[31m${G}\e[94m, jobID-\e[31m${jobID}\e[94m, C-\e[31m${additionalIndex}\e[94m, B-\e[31m${directory}\e[94m, P-\e[31m${point}\e[94m, R-\e[31m$((${jobID} - 1))\e[0m        ";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch -Q --job-name=${filterText}C${additionalIndex}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_C-${additionalIndex}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_C-${additionalIndex}_B-${directory}_P-${point}_R-$((${jobID} - 1))_%j.txt sbatchTMPRecursionOnePoint ${jobID} ${N} ${gaps} ${mD} ${G} ${point} ${directory} $((${jobID} - 1)) ${additionalIndex} ${filterText} ${4};
+    else
+      qsub -z -N ${filterText}C${additionalIndex}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${jobID},VAR2=${N},VAR3=${gaps},VAR4=${mD},VAR5=${G},VAR6=${point},VAR7=${directory},VAR8=$((${jobID} - 1)),VAR9=${additionalIndex},filterText=${filterText},VAR10=${4} qsubTMPRecursionOnePoint;
+    fi
+  fi
+else
+  echo -ne "\r\e[94mReanimation \e[32m${2}\e[94m/${3}: job completed\e[0m                                   ";
+fi

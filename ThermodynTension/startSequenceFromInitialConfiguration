@@ -1,0 +1,18 @@
+source scriptConfig;
+mkdir -p output;
+licznik=$(date +%s);
+
+filterText=HCHTT${N}_;
+iterations=20;
+
+for ((directory=${minDirectory};directory<=${maxDirectory};directory++)); do
+point=${minPoint};
+echo "starting: point-${point}, directory-${directory}";
+if [ ${queueSystem} = 0 ]; then
+sbatch -Q --job-name=${filterText}G${G}C${additionalIndex}B${directory}P${point}D${mD} --output=output/OUT_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_B-${directory}_P-${point}_C-${additionalIndex}_%j.txt --error=output/ERR_HCH${N}_gaps-${gaps}_mD-${mD}_G-${G}_B-${directory}_P-${point}_C-${additionalIndex}_%j.txt sbatchTMPRecursionStartFromInitialConfiguration ${maxJobID} ${N} ${gaps} ${mD} ${G} ${point} ${iterations} ${directory} ${maxPoint} ${filterText} ${additionalIndex} ${licznik};
+else
+qsub -N ${filterText}G${G}C${additionalIndex}B${directory}P${point}D${mD} -v VAR1=${maxJobID},VAR2=${N},VAR3=${gaps},VAR4=${mD},VAR5=${G},VAR6=${point},VAR7=${iterations},VAR8=${directory},VAR9=${maxPoint},filterText=${filterText},VAR10=${additionalIndex},VAR11=${licznik} qsubTMPRecursionStartFromInitialConfiguration;
+fi
+licznik=$((${licznik}+1));
+done
+

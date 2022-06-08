@@ -1,0 +1,49 @@
+N=3120;
+mD=0.500001;
+mN=6;
+G=1;
+preFolder=HCH-Lfixed-ThermodynTension/shearMoves_0.500001_rotated_largeN-${N};
+
+increase=1;
+actualMaxJobID=1;
+actualMinJobID=1;
+minPoint=16; #from 1
+maxPoint=$(wc -l ${preFolder}/0_deg/startArguments.txt | cut -f1 -d' ');
+minPressure=1; #from 1
+maxPressure=1;
+minDirectory=1;
+maxDirectory=100;
+
+for ((deg=0;deg<=55;deg+=5)); do 
+  folder=${preFolder}/${deg}_deg;
+  listLength=$(wc -l ${folder}/startArguments.txt | cut -f1 -d' ');
+  for ((pressInd=${minPressure};pressInd<=${maxPressure};pressInd++)); do
+    for ((j=${minPoint};j<=${maxPoint};j++)); do
+      if [ ${G} = 1 ]; then
+        tXX=$(cut -f2 ${folder}/startArguments.txt | head -n ${j} | tail -1);
+        tYY=$(cut -f3 ${folder}/startArguments.txt | head -n ${j} | tail -1);
+        tXY=$(cut -f4 ${folder}/startArguments.txt | head -n ${j} | tail -1);
+        PRESSURE=$(cut -f5 ${folder}/startArguments.txt | head -n ${pressInd} | tail -1);
+      else
+        tXX=$(cut -f2 ${folder}/startArguments.txt | head -n $((${listLength} - ${j} + 1)) | tail -1);
+        tYY=$(cut -f3 ${folder}/startArguments.txt | head -n $((${listLength} - ${j} + 1)) | tail -1);
+        tXY=$(cut -f4 ${folder}/startArguments.txt | head -n $((${listLength} - ${j} + 1)) | tail -1);
+        PRESSURE=$(cut -f5 ${folder}/startArguments.txt | head -n $((${listLength} - ${pressInd} + 1)) | tail -1);
+      fi
+      for ((i=${minDirectory};i<=${maxDirectory};i++)); do 
+        finalFolder=${folder}/2D_N-${N}_gaps-0_G-${G}_badanie-${i}_mN-${mN}_mD-${mD}_p-${PRESSURE};
+        for ((k=${actualMaxJobID};k>=${actualMinJobID};k--)); do
+          mv ${finalFolder}/j-${k}_OrientatRes_t-${tXX}_${tYY}_${tXY}.txt ${finalFolder}/j-$((${k}+${increase}))_OrientatRes_t-${tXX}_${tYY}_${tXY}.txt;
+          mv ${finalFolder}/j-${k}_Orientations_t-${tXX}_${tYY}_${tXY}.txt ${finalFolder}/j-$((${k}+${increase}))_Orientations_t-${tXX}_${tYY}_${tXY}.txt;
+          mv ${finalFolder}/j-${k}_Configurations_t-${tXX}_${tYY}_${tXY}.txt ${finalFolder}/j-$((${k}+${increase}))_Configurations_t-${tXX}_${tYY}_${tXY}.txt;
+          mv ${finalFolder}/j-${k}_OrientatRes_t-${tXX}_${tYY}_${tXY}_allOnt.txt ${finalFolder}/j-$((${k}+${increase}))_OrientatRes_t-${tXX}_${tYY}_${tXY}_allOnt.txt;
+          mv ${finalFolder}/j-${k}_Orientations_t-${tXX}_${tYY}_${tXY}_allOnt.txt ${finalFolder}/j-$((${k}+${increase}))_Orientations_t-${tXX}_${tYY}_${tXY}_allOnt.txt;
+          mv ${finalFolder}/j-${k}_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt ${finalFolder}/j-$((${k}+${increase}))_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt;
+        done
+      done
+      echo "completed changing for point: ${j}/${maxPoint}";
+    done
+    echo "completed changing for ref. pressure: ${pressInd}/${maxPressure}";
+  done
+  echo "completed changing for deg: ${deg}";
+done

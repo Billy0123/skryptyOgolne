@@ -1,0 +1,22 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+
+mD=$(cut -f1 ../fileStartArguments | head -n ${1} | tail -1);
+additionalMinIndex=$(cut -f4 ../fileStartArguments | head -n ${1} | tail -1);
+additionalMaxIndex=$((${additionalMinIndex} + 1));
+N=${2};
+
+listLength=$(wc -l ${startArgumentsFileName} | cut -f1 -d' ');
+if [ ${G} -eq 0 ]; then 
+  PRESSURE=$(cut -f2 ${startArgumentsFileName} | head -n $((listLength-additionalMinIndex)) | tail -1);
+else 
+  PRESSURE=$(cut -f2 ${startArgumentsFileName} | head -n $((additionalMaxIndex)) | tail -1);
+fi;
+
+rm ResultsSummary_N-${N}_mD-${mD}_p-${PRESSURE}.txt;
+
+for ((dir=${minDirectory};dir<=${maxDirectory};dir++)); do
+  printf "dir=${dir}, N=${N}, mD=${mD}, p*=${PRESSURE}\n" >> ResultsSummary_N-${N}_mD-${mD}_p-${PRESSURE}.txt
+  cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dir}_mN-${mN}_mD-${mD}_p-${PRESSURE}/ResultsSummary.txt >> ResultsSummary_N-${N}_mD-${mD}_p-${PRESSURE}.txt
+  printf "\n" >> ResultsSummary_N-${N}_mD-${mD}_p-${PRESSURE}.txt
+done;

@@ -1,0 +1,14 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+rm ResultsSummary-merged.txt;
+N=${1};
+
+for ((beta=1;beta<=1;beta++)); do
+  printf "beta=${beta}\n" >> ResultsSummary-merged.txt
+  for ((deltaDiaIndex=1;deltaDiaIndex<=9;deltaDiaIndex++)); do   
+    deltaDiameter=$(cat ../fileDeltaDiameters | head -n ${deltaDiaIndex} | tail -1);
+    printf "deltaDiameter=${deltaDiameter}\n" >> ResultsSummary-merged.txt
+    cat 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt >> ResultsSummary-merged.txt
+  done;
+  printf "\n" >> ResultsSummary-merged.txt
+done;

@@ -1,0 +1,64 @@
+source scriptConfig;
+
+invPotPower=$(cat filePotPower | head -n ${1} | tail -1);
+T=$(cat fileTemperatures | head -n ${2} | tail -1);
+filterText=q${invPotPower}t${T}_ 
+
+fullArgNum=$(wc -l startArguments.txt | cut -f1 -d' ');
+if [ ${invPotPower} = 1.000E+02 ]; then 
+  if [ ${T} = 1.000E+00 ]; then minPoint=0; maxPoint=9;
+  elif [ ${T} = 1.000E-01 ]; then minPoint=8; maxPoint=14;
+  elif [ ${T} = 1.000E-02 ]; then minPoint=13; maxPoint=19;
+  elif [ ${T} = 1.000E-03 ]; then minPoint=18; maxPoint=24;
+  elif [ ${T} = 1.000E-04 ]; then minPoint=23; maxPoint=29;
+  elif [ ${T} = 1.000E-05 ]; then minPoint=28; maxPoint=34;
+  fi;
+elif [ ${invPotPower} = 5.000E+02 ]; then 
+  if [ ${T} = 1.000E+00 ]; then minPoint=3; maxPoint=14;
+  elif [ ${T} = 1.000E-01 ]; then minPoint=8; maxPoint=19;
+  elif [ ${T} = 1.000E-02 ]; then minPoint=13; maxPoint=24;
+  elif [ ${T} = 1.000E-03 ]; then minPoint=18; maxPoint=29;
+  elif [ ${T} = 1.000E-04 ]; then minPoint=23; maxPoint=34;
+  elif [ ${T} = 1.000E-05 ]; then minPoint=28; maxPoint=39;
+  fi;
+elif [ ${invPotPower} = 1.000E+03 ]; then 
+  if [ ${T} = 1.000E+00 ]; then minPoint=1; maxPoint=18;
+  elif [ ${T} = 1.000E-01 ]; then minPoint=6; maxPoint=23;
+  elif [ ${T} = 1.000E-02 ]; then minPoint=11; maxPoint=28;
+  elif [ ${T} = 1.000E-03 ]; then minPoint=16; maxPoint=33;
+  elif [ ${T} = 1.000E-04 ]; then minPoint=21; maxPoint=38;
+  elif [ ${T} = 1.000E-05 ]; then minPoint=26; maxPoint=43;
+  fi;
+fi;
+minPoint=0; maxPoint=19;
+if [ ${G} = 0 ]; then minPointBuffer=${minPoint}; minPoint=$((${fullArgNum} - ${maxPoint})); maxPoint=$((${fullArgNum} - ${minPointBuffer})); fi;
+
+#qstat -u mb1991 > ${fileRunningJobsName};
+squeue -u mb1991 -o "%i %P %j %T %M %l %D %R" > ${fileRunningJobsName};
+
+if [ "$(cat ${fileRunningJobsName} | head -n 1 | tail -1)" == "JOBID PARTITION NAME STATE TIME TIME_LIMIT NODES NODELIST(REASON)" ]; then
+  echo "Job list downloaded successfully. Starting reanimation...";
+  rm ${fileDirectoriesName} ${filePointsName}; 
+
+  cat ${fileRunningJobsName} | grep " ${filterText}G${G}" > joby; #UWAGA: dostosować filtrację!
+  liczbaJobow=$(cat joby | wc -l); 
+  if [ ${liczbaJobow} -lt $((${maxDirectory}-${minDirectory}+1)) ]; then  
+    for ((j=${minDirectory};j<=${maxDirectory};j++)); do
+      liczbaJobowSpecificDir=$(cat joby | grep B${j}P | wc -l);
+      if [ ${liczbaJobowSpecificDir} -eq 0 ]; then
+        errorFiles=$(ls 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${j}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower} | grep _Results.txt.err | wc -l);
+        p=$(($(ls 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${j}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower} | grep _Results | wc -l)+${minPoint}-1-${startPreviousIteration}-${errorFiles})); 
+        if [ ${p} -lt $((${maxPoint}-1-${startPreviousIteration})) ]; then
+          echo ${p} >> ${filePointsName};
+          echo ${j} >> ${fileDirectoriesName};
+        fi; 
+      fi
+    done;
+  fi; 
+  rm joby;
+
+  ./reanimationSequence ${filterText} ${invPotPower} ${T};
+else echo "Couldn't download job list. Aborting reanimation...";
+fi;
+
+rm ${fileRunningJobsName};

@@ -1,0 +1,16 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+resFileName=ResultsSummary-acumulateAnalysis.txt;
+rm ${resFileName};
+
+initMode=$(cut -f1 ../fileParams | head -n $1 | tail -1);
+N=$(cut -f2 ../fileParams | head -n $1 | tail -1);
+
+for ((iterationsNumber=1;iterationsNumber<220;iterationsNumber++)); do 
+   printf "liczba cykli\t$((${iterationsNumber}*200000))\n" >> ${resFileName};
+   dirNum=$((10000+${iterationsNumber}));
+   cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt >> ${resFileName};
+   printf "\n" >> ${resFileName}
+done;
+
+

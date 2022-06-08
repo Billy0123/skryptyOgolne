@@ -1,0 +1,42 @@
+source scriptConfig; #usage: foldersNumber=176; cd folder; for ((i=1;i<=${foldersNumber};i++)); do ./obrobka-bashMerging-specificDataRange-separate-merged ${param1} ${point} ${i} 1; done; cd; 
+
+startPointNumber=$2; #!!CHANGED
+maxPoint=$((${startPointNumber}+1)); #!!CHANGED
+linesToSkip=0; #!!CHANGED
+
+initMode=$(cut -f1 fileParams | head -n $1 | tail -1);
+N=$(cut -f2 fileParams | head -n $1 | tail -1);
+
+#DOSTOSOWAĆ DO BADANIA
+linesInIteration=500; linesInResultsFile=11000;
+jobIDBase=8; #zmienna ma wskazywać na 'pierwszy' (czyli o najwyższym jobID, w przypadku badań OnePoint) plik, wchodzący do badań
+
+startIteration=$3; 
+iterationsNumber=$4; #1-pojedyncze 'linesInIteration' linii zaczynane od 1+'startIteration-1'*linesInIteration. Zatem dla np. 'separatywnych 1000k' nalezy wyzwalac ($2 i $3: 1 1 (pierwszy 1000k), 2 1 (drugi 1000k),  3 1, 4 1, 5 1, itd.). Wieksze wartosci beda 'akumulowaly' kolejne 'linesInIteration', zatem dla np. 'ostatnich 2000k linii', nalezy: 9 2, dla 'ostatnich 4000k linii': 7 4, itd. Program uwzględnia przechodzenie do 'kolejnych' plików (jobID), jeżeli dana iteracja przekracza 'linesInResultsFile'.
+
+mkdir -p ${newDirectoryName};
+dirNum=$((20000+${startIteration}));
+mkdir -p ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((a=0;a<${iterationsNumber};a++)); do
+  startLine=$((1+(${startIteration}-1+${a})*${linesInIteration}));
+  jobID=${jobIDBase};
+  while [ ${startLine} -gt ${linesInResultsFile} ]; do
+    startLine=$((${startLine}-${linesInResultsFile}));
+    jobID=$((${jobID}-1));
+  done;
+  
+  for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+    #for ((j=1;j<=${startArgumentsLength};j++)); do
+    for ((j=${maxPoint};j<=${maxPoint};j++)); do #!!CHANGED
+      PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${jobID}_Configurations_arg-${PRESSURE}_Results.txt | head -n $((${startLine}-1+${linesInIteration})) | tail -n ${linesInIteration} >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+    done;
+  done;
+done;
+
+if [ ${initMode} -eq 60 -o ${initMode} -eq 61 ]; then cp -f config-${N}.txt ${newDirectoryName}/config.txt; fi;
+cd ${newDirectoryName};
+time ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${dirNum} ${alpha} ${beta};
+
+exit 0

@@ -1,6 +1,23 @@
-date >> watchdogOut;
-printf "\n" >> watchdogOut;
-./reanimationAll >>watchdogOut 2>&1;
-printf "====================\n" >> watchdogOut;
-sleep ${1};
-./watchdog ${1};
+#!/bin/bash
+#SBATCH --job-name=rean
+#SBATCH -p standard
+#SBATCH --time=2-00:00:00
+#SBATCH --mem-per-cpu=1M
+#SBATCH --output=watchdogOut_%j.txt
+#SBATCH --error=watchdogErr_%j.txt
+
+cd $SLURM_SUBMIT_DIR
+for ((i=1;i<99999;i++)); do
+  printf "${i} date: $(date):\n\n";
+
+  #place for reanimating scripts
+  cd BDS-homoHetero-hysteresis/;
+  for ((j=1;j<=6;j++)); do for ((g=0;g<=1;g++)); do
+    ./reanimationSequenceAll ${j} ${g}; 
+  done; done;
+  cd ..;
+  #//
+
+  sleep 600;
+  printf "\n\n\n\n";
+done;

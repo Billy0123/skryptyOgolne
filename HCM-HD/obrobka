@@ -1,19 +1,26 @@
 #!/bin/bash
-#PBS -N obrobka
-#PBS -q standard
-#PBS -r n
-#PBS -l walltime=24:0:0
-#PBS -o OUT-obrobka_HCH${VAR3}_gaps-${VAR4}_mD-${VAR5}_G-${VAR6}_B-${VAR9}_fromP-${VAR7}_${PBS_JOBID}.txt
-#PBS -e ERR-obrobka_HCH${VAR3}_gaps-${VAR4}_mD-${VAR5}_G-${VAR6}_B-${VAR9}_fromP-${VAR7}_${PBS_JOBID}.txt
+#SBATCH --job-name=HCHHDobr
+#SBATCH -p standard
+#SBATCH --time=1-00:00:00
+#SBATCH --no-requeue
+#SBATCH --output=OUT-obrobka_%j.txt
+#SBATCH --error=ERR-obrobka_%j.txt
 
 #skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
 
-cd $PBS_O_WORKDIR;
+cd $SLURM_SUBMIT_DIR;
+module load java6;
 source scriptConfig;
+
+rows=${1};
+if [ ${2} = 0 ]; then diskD=2.550;
+elif [ ${2} = 1 ]; then diskD=2.600;
+elif [ ${2} = 2 ]; then diskD=2.646;
+fi;
+
 time java -jar resultMerger.jar ${newDirectoryName} ${N} ${gaps} ${G} ${mN} ${mS} ${mD} ${minDirectory} ${maxDirectory} ${liczbaDanych} ${rows} ${diskD};
 cd ${newDirectoryName};
-time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} 0 ${useSpecificDir} ${rows} ${diskD};
-time java -jar filterCopy.jar;
+time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mS} ${mD} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${useSpecificDir} ${rows} ${diskD};
 
 
 exit 0

@@ -1,0 +1,51 @@
+source scriptConfig;
+
+startPointNumber=${2}; #!!CHANGED
+maxPoint=$((${startPointNumber}+1)); #!!CHANGED
+linesToSkip=0; #!!CHANGED
+
+deltaDiameter=$(cat fileDeltaDiameters | head -n ${1} | tail -1);
+
+#DOSTOSOWAĆ DO BADANIA
+linesInIteration=1000; linesInResultsFile=10000;
+jobIDBase=11; #zmienna ma wskazywać na 'pierwszy' (czyli o najwyższym jobID, w przypadku badań OnePoint) plik, wchodzący do badań
+
+startIteration=$3; 
+iterationsNumber=$4; #1-pojedyncze 'linesInIteration' linii zaczynane od 1+'startIteration-1'*linesInIteration. Zatem dla np. 'separatywnych 1000k' nalezy wyzwalac ($2 i $3: 1 1 (pierwszy 1000k), 2 1 (drugi 1000k),  3 1, 4 1, 5 1, itd.). Wieksze wartosci beda 'akumulowaly' kolejne 'linesInIteration', zatem dla np. 'ostatnich 2000k linii', nalezy: 9 2, dla 'ostatnich 4000k linii': 7 4, itd. Program uwzględnia przechodzenie do 'kolejnych' plików (jobID), jeżeli dana iteracja przekracza 'linesInResultsFile'.
+
+
+#error folders check DUE TO PCSS INCOMPETENCE
+PRESSURE=$(cut -f2 startArguments.txt | head -n ${maxPoint} | tail -1);
+dirNum=$((10000+${iterationsNumber}));
+errorID=0;
+fileee=${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+if [ -f ${fileee} ]; then
+  fileeeSize=$(cat ${fileee} | wc -l); 
+  if [ ${fileeeSize} -ne $((${iterationsNumber}*${linesInIteration}*$((${maxDirectory}-${minDirectory}+1)))) ]; then errorID=1; fi;
+else errorID=1; fi;
+if [ ${errorID} -eq 1 ]; then
+  echo "found dir to merge & compute";
+  if [ -d ${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta} ]; then
+    rm -r ${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+  fi;
+  
+  sbatch obrobka-bashMerging-specificDataRange-acumulate-merged ${1} ${2} ${3} ${4};
+
+else 
+  printf "no dir to merge "; 
+  errorID=0;
+  fileee=${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt;
+  if [ -f ${fileee} ]; then
+    fileeeSize=$(cat ${fileee} | wc -l); 
+    if [ ${fileeeSize} -ne $((${maxPoint}-${startPointNumber}+1)) ]; then errorID=1; fi;
+  else errorID=1; fi;
+
+  if [ ${errorID} -eq 1 ]; then
+    printf "but found dir to compute...\n"; 
+    
+    cd ${newDirectoryName};
+    rm 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt;
+    ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${dirNum} ${alpha} ${beta};
+    cd ..;
+  else printf "& to compute\n"; fi;
+fi;

@@ -1,4 +1,5 @@
 source scriptConfig;
+mkdir -p output;
 licznik=$(date +%s);
 
 for ((directory=${minDirectory};directory<=${maxDirectory};directory++)); do

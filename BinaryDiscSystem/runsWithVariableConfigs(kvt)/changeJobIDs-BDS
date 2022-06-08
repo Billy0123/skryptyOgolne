@@ -1,0 +1,28 @@
+source scriptConfig;
+
+initMode=$1;
+beta=$2;
+parM=$(cut -f1 fileParams | head -n $3 | tail -1);
+parN=$(cut -f2 fileParams | head -n $3 | tail -1);
+N=$(cut -f3 fileParams | head -n $3 | tail -1);
+parXCells=$(cut -f4 fileParams | head -n $3 | tail -1);
+parYCells=$(cut -f5 fileParams | head -n $3 | tail -1);
+
+folder=pM-${parM}_pN-${parN};
+
+increase=8;
+actualMaxJobID=8;
+actualMinJobID=1;
+startPressurePointNumber=$4;  #licząc od 1 - czytanie wierszy w pliku
+endPressurePointNumber=$5;
+
+for ((j=${startPressurePointNumber};j<=${endPressurePointNumber};j++)); do
+  PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+  for ((i=${minDirectory};i<=${maxDirectory};i++)); do 
+    for ((k=${actualMaxJobID};k>=${actualMinJobID};k--)); do
+      mv ${folder}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${k}_Configurations_arg-${PRESSURE}.txt ${folder}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}.txt;
+      mv ${folder}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt ${folder}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-$((${k}+${increase}))_Configurations_arg-${PRESSURE}_Results.txt;
+    done;
+  done;
+  echo "completed changing for press: ${j}";
+done;

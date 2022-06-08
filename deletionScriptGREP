@@ -1,0 +1,16 @@
+#UWAGA: jako argument skryptu należy wstawić w cudzysłowie rozszerzenia komendy listującej, grepujące ją w odpowiedni sposób, np.: 
+#./deletionScriptGREP "| grep nazwa | grep \"cos tam\"" - skrypt usunie joby, które wyświetliłyby się po użyciu komendy: [squeue -u mb1991 -o "%i %P %j %T %M %l %D %R" | grep nazwa | grep costam]
+#bez dodatkowego argumentu komenda działa jak deletionScriptALL - usunie joby, które wyświetliłyby się po użyciu komendy: [squeue -u mb1991 -o "%i %P %j %T %M %l %D %R"]
+
+komenda="squeue -u mb1991 -o \"%i %P %j %T %M %l %D %R\"$1";
+eval ${komenda} > file;
+
+listLength=$(wc -l file | cut -f1 -d' ');
+for ((i=1;i<=${listLength};i++)); do
+   stringArray=($(cat file | head -n ${i} | tail -1));
+   echo "deleting ${i}/${listLength}: jobID-${stringArray[0]}";
+   scancel ${stringArray[0]};
+   #qdel ${stringArray[0]};
+done
+
+rm file;

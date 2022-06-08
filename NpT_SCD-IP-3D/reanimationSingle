@@ -1,0 +1,28 @@
+source scriptConfig;
+mkdir -p output;
+filterText=${1};
+
+jobID=$(cat ${fileJobIDName} | head -n ${2} | tail -1);
+directory=$(cat ${fileDirectoriesName} | head -n ${2} | tail -1);
+point=$(cat ${filePointsName} | head -n ${2} | tail -1);
+
+if [ ${jobID} -gt $((1+${startPreviousIteration})) ]; then
+  if [ ${jobID} -ge ${maxJobID} ]; then
+    jobID=${maxJobID};
+    echo -ne "\r\e[94mStarting \e[32m${2}\e[94m/${3}: N-\e[31m${N}\e[94m, gaps-\e[31m${gaps}\e[94m, G-\e[31m${G}\e[94m, jobID-\e[31mnone(start)\e[94m, B-\e[31m${directory}\e[94m, P-\e[31m${point}\e[94m, T-\e[31m${T}\e[94m, R-\e[31m$((${jobID} - 1))\e[0m        ";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch -Q --job-name=${filterText}G${G}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_HC${N}_gaps-${gaps}_G-${G}_B-${directory}_P-${point}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_R-$((${jobID} - 1))_%j.txt --error=output/ERR_HC${N}_gaps-${gaps}_G-${G}_B-${directory}_P-${point}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_R-$((${jobID} - 1))_%j.txt sbatchTMPRecursionStartNormalToOnePoint ${N} ${gaps} ${G} ${directory} ${point} $((${jobID} - 1)) 1 ${filterText} ${4} ${T} ${polydisperseDelta} ${invPotPower};
+    else
+      qsub -N ${filterText}G${G}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${N},VAR2=${gaps},VAR3=${G},VAR4=${directory},VAR5=${point},VAR6=$((${jobID} - 1)),VAR7=1,filterText=${filterText},VAR8=${4},VAR9=${T},VAR10=${polydisperseDelta},VAR11=${invPotPower} qsubTMPRecursionStartNormalToOnePoint;
+    fi
+  else
+    echo -ne "\r\e[94mReanimating \e[32m${2}\e[94m/${3}: N-\e[31m${N}\e[94m, gaps-\e[31m${gaps}\e[94m, G-\e[31m${G}\e[94m, jobID-\e[31m${jobID}\e[94m, B-\e[31m${directory}\e[94m, P-\e[31m${point}\e[94m, T-\e[31m${T}\e[94m, R-\e[31m$((${jobID} - 1))\e[0m        ";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch -Q --job-name=${filterText}G${G}B${directory}P${point}R$((${jobID} - 1)) --output=output/OUT_HC${N}_gaps-${gaps}_G-${G}_B-${directory}_P-${point}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_R-$((${jobID} - 1))_%j.txt --error=output/ERR_HC${N}_gaps-${gaps}_G-${G}_B-${directory}_P-${point}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_R-$((${jobID} - 1))_%j.txt sbatchTMPRecursionOnePoint ${jobID} ${N} ${gaps} ${G} ${point} ${directory} $((${jobID} - 1)) ${filterText} ${T} ${polydisperseDelta} ${invPotPower};
+    else
+      qsub -N ${filterText}G${G}B${directory}P${point}R$((${jobID} - 1)) -v VAR1=${jobID},VAR2=${N},VAR3=${gaps},VAR4=${G},VAR5=${point},VAR6=${directory},VAR7=$((${jobID} - 1)),filterText=${filterText},VAR8=${T},VAR9=${polydisperseDelta},VAR10=${invPotPower} qsubTMPRecursionOnePoint;
+    fi
+  fi
+else
+  echo -ne "\r\e[94mReanimation \e[32m${2}\e[94m/${3}: job completed\e[0m                                   ";
+fi

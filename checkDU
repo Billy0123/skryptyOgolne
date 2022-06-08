@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH --job-name=check
+#SBATCH -p standard
+#SBATCH --time=7-0:0:0
+#SBATCH --no-requeue
+#SBATCH --output=OUT_check_%j.txt
+#SBATCH --error=ERR_check_%j.txt
+
+cd $SLURM_SUBMIT_DIR
+pwd
+#time du -hs .
+#diff -qr HCH-Lfixed-ThermodynTension grant_564/project_data/mb/HCH-Lfixed-ThermodynTension
+du -hsb BSS
+du -hsb grant_564/scratch/mb/BSS
+

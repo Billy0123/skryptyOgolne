@@ -1,0 +1,9 @@
+N=300;
+mkdir PDDFR;  
+for ((inM=14;inM<=59;inM++)); do 
+  for ((p=1;p<=12;p++)); do 
+    PRESSURE=$(cut -f2 startArguments.txt | head -n ${p} | tail -1); 
+    cp 2D_N-${N}_gaps-0_G-1_badanie-1_D-1.000E-03_inM-${inM}_a-1_b-0/j-none_Configurations_arg-${PRESSURE}.txt PDDFR/conf_inM-${inM}_a-${PRESSURE}.txt; 
+    cp 2D_N-${N}_gaps-0_G-1_badanie-1_D-1.000E-03_inM-${inM}_a-1_b-0/ProbDensDistFunRes_arg-${PRESSURE}_N-${N}_inM-${inM}.txt PDDFR; 
+  done; 
+done;

@@ -1,0 +1,16 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+resFileName=ResultsSummary-separateAnalysis.txt;
+rm ${resFileName};
+
+initMode=$(cut -f1 ../fileParams | head -n $1 | tail -1);
+N=$(cut -f2 ../fileParams | head -n $1 | tail -1);
+
+for ((startIteration=1;startIteration<=220;startIteration++)); do 
+   printf "ID paczki 200k cykli\t${startIteration}\n" >> ${resFileName};
+   dirNum=$((20000+${startIteration}));
+   cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dirNum}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt >> ${resFileName};
+   printf "\n" >> ${resFileName}
+done;
+
+

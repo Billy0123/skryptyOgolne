@@ -1,0 +1,60 @@
+#!/bin/bash
+#SBATCH --job-name=BDSobrobka
+#SBATCH -p fast
+#SBATCH --time=0-01:00:00
+#SBATCH --no-requeue
+#SBATCH --output=OUT-obrobka.txt
+#SBATCH --error=ERR-obrobka.txt
+
+#skrypt wymaga: resultMerger.jar w katalogu wywolania, oraz istnienia katalogu 'merged' (lub inna nazwa) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt] oraz filterCopy.jar + FilterConfig.txt
+
+cd $SLURM_SUBMIT_DIR;
+source scriptConfig;
+
+initMode=$1;
+beta=$2;
+parM=$(cut -f1 fileParams | head -n $3 | tail -1);
+parN=$(cut -f2 fileParams | head -n $3 | tail -1);
+N=$(cut -f3 fileParams | head -n $3 | tail -1);
+parXCells=$(cut -f4 fileParams | head -n $3 | tail -1);
+parYCells=$(cut -f5 fileParams | head -n $3 | tail -1);
+
+cd pM-${parM}_pN-${parN};
+
+mkdir ${newDirectoryName}; cp -f config.txt ../program ../startArguments.txt ${newDirectoryName};
+mkdir ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+startArgumentsLength=$(wc -l ../startArguments.txt | cut -f1 -d' ');
+for ((k=$((${maxJobID}-1));k>=1;k--)); do
+  for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+    for ((j=$((${minPoint}+1));j<=${maxPoint};j++)); do
+      PRESSURE=$(cut -f2 ../startArguments.txt | head -n ${j} | tail -1);
+      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt | tail -n 10000 >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+    done;
+  done;
+done;
+ 
+cd ${newDirectoryName};
+time srun ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${useSpecificDir} ${alpha} ${beta};
+#time srun java -jar filterCopy.jar;
+
+
+#cd $PBS_O_WORKDIR;
+#source scriptConfig;
+#mkdir ${newDirectoryName};
+#mkdir ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+#startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+#for ((k=$((${maxJobID}-1));k>=1;k--)); do
+#  for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+#    for ((j=1;j<=${startArgumentsLength};j++)); do
+#      PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+#      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+#    done;
+#  done;
+#done;
+#
+#cd ${newDirectoryName};
+#time ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${useSpecificDir} ${alpha} ${beta};
+#time java -jar filterCopy.jar;
+
+
+exit 0

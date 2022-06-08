@@ -1,0 +1,32 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+rm ResultsSummary-single.txt;
+
+for ((iPPIterator=1;iPPIterator<=3;iPPIterator++)); do
+  invPotPower=$(cat ../filePotPower | head -n ${iPPIterator} | tail -1);
+  printf "iPP=${invPotPower}\n" >> ResultsSummary-single.txt 
+
+  fullArgNum=$(wc -l ../startArguments.txt | cut -f1 -d' ');
+  if [ ${invPotPower} = 1.000E+02 ]; then minPoint=3; maxPoint=14;
+  elif [ ${invPotPower} = 5.000E+02 ]; then minPoint=18; maxPoint=49;
+  elif [ ${invPotPower} = 1.000E+03 ]; then minPoint=63; maxPoint=99;
+  fi;
+  if [ ${G} = 0 ]; then minPointBuffer=${minPoint}; minPoint=$((${fullArgNum} - ${maxPoint})); maxPoint=$((${fullArgNum} - ${minPointBuffer})); fi;
+
+  for ((TIterator=1;TIterator<=6;TIterator++)); do
+    T=$(cat ../fileTemperatures | head -n ${TIterator} | tail -1);
+    printf "T=${T}\n" >> ResultsSummary-single.txt
+    for ((dir=${minDirectory};dir<=${maxDirectory};dir++)); do
+      printf "dir: ${dir}\n" >> ResultsSummary-single.txt
+      cut -f2,4,22,24,26,28 ../3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dir}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}/ResultsSummary_p-${minPoint}.txt | head -n 1 | tail -1 >> ResultsSummary-single.txt;
+      for ((point=${minPoint};point<${maxPoint};point++)); do
+        cut -f2,4,22,24,26,28 ../3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dir}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}/ResultsSummary_p-${point}.txt | head -n 2 | tail -1 >> ResultsSummary-single.txt;
+      done;
+    done;
+    printf "\n" >> ResultsSummary-single.txt
+  done;
+  printf "\n" >> ResultsSummary-single.txt
+done;
+
+
+

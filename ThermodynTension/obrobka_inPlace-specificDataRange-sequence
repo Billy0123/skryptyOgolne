@@ -1,0 +1,57 @@
+#skrypt wymaga: istnienia katalogu 'merged' (lub inna nazwa) oraz w nim: program + config.txt (odpowiednio ustawiony) [+startArguments.txt]
+
+source scriptConfig;
+
+mD=$(cut -f1 fileStartArguments | head -n ${1} | tail -1);
+minPoint=$(cut -f2 fileStartArguments | head -n ${1} | tail -1);
+maxPoint=$(cut -f3 fileStartArguments | head -n ${1} | tail -1);
+additionalMinIndex=$(cut -f4 fileStartArguments | head -n ${1} | tail -1);
+additionalMaxIndex=$(cut -f5 fileStartArguments | head -n ${1} | tail -1);
+minDirectory=$(cut -f6 fileStartArguments | head -n ${1} | tail -1);
+maxDirectory=$((${minDirectory}+100-1));
+N=${2};
+
+#DOSTOSOWAĆ DO BADANIA
+linesInIteration=100; linesInResultsFile=1000; #...Iteration - ile ma być brane na iterację TEGO skryptu, ...tsFile - ile linii zawierają pliki Results, na potrzeby komunikatu bezpieczeństwa
+jobIDBase=1; #zmienna ma wskazywać na 'pierwszy' (czyli o najwyższym jobID, w przypadku badań OnePoint) plik, wchodzący do badań
+
+minPoint=14;
+useSpecificDir=$((${minDirectory} + 1)); #używany w folderze 'merged'
+startIteration=$3; 
+iterationsNumber=$4; #1-pojedyncze 'linesInIteration' linii zaczynane od 1+'startIteration-1'*linesInIteration. Zatem dla np. 'separatywnych 100k' nalezy wyzwalac ($3 i $4: 1 1 (pierwsze 100k), 2 1 (drugie 100k),  3 1, 4 1, 5 1, itd.). Wieksze wartosci beda 'akumulowaly' kolejne 'linesInIteration', zatem dla np. 'ostatnich 200k linii', nalezy: 9 2, dla 'ostatnich 600k linii': 5 6, itd. Program uwzględnia przechodzenie do 'kolejnych' plików (jobID), jeżeli dana iteracja przekracza 'linesInResultsFile'.
+
+mkdir ${newDirectoryName};
+listLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((pointNumberP=${additionalMinIndex};pointNumberP<${additionalMaxIndex};pointNumberP++)); do
+   if [ ${G} = 1 ]; then
+      PRESSURE=$(cut -f5 startArguments.txt | head -n $((${pointNumberP} + 1)) | tail -1);
+   else
+      PRESSURE=$(cut -f5 startArguments.txt | head -n $((${listLength} - ${pointNumberP})) | tail -1);
+   fi;
+   mkdir ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_mN-${mN}_mD-${mD}_p-${PRESSURE};
+   for ((a=0;a<${iterationsNumber};a++)); do
+      startLine=$((1+(${startIteration}-1+${a})*${linesInIteration}));
+      jobID=${jobIDBase};
+      while [ ${startLine} -gt ${linesInResultsFile} ]; do
+        startLine=$((${startLine}-${linesInResultsFile}));
+        jobID=$((${jobID}-1));
+      done;
+      for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+         for ((j=${minPoint};j<${maxPoint};j++)); do
+	    if [ ${G} = 1 ]; then
+   	       tXX=$(cut -f2 startArguments.txt | head -n $((${j} + 1)) | tail -1);
+   	       tYY=$(cut -f3 startArguments.txt | head -n $((${j} + 1)) | tail -1);
+   	       tXY=$(cut -f4 startArguments.txt | head -n $((${j} + 1)) | tail -1);
+	    else
+   	       tXX=$(cut -f2 startArguments.txt | head -n $((${listLength} - ${j})) | tail -1);
+   	       tYY=$(cut -f3 startArguments.txt | head -n $((${listLength} - ${j})) | tail -1);
+   	       tXY=$(cut -f4 startArguments.txt | head -n $((${listLength} - ${j})) | tail -1);
+	    fi;
+            cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_mN-${mN}_mD-${mD}_p-${PRESSURE}/j-${jobID}_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt | head -n $((${startLine}-1+${linesInIteration})) | tail -n ${linesInIteration} >> ${newDirectoryName}/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_mN-${mN}_mD-${mD}_p-${PRESSURE}/j-none_Configurations_t-${tXX}_${tYY}_${tXY}_Results.txt;
+         done;
+      done;
+   done;
+   cd ${newDirectoryName};
+   time ./program 5 none ${linesToSkip} ${N} ${gaps} ${mD} ${G} ${minPoint} $((${maxPoint}-${minPoint})) ${useSpecificDir} ${pointNumberP};
+   cd ..;
+done;

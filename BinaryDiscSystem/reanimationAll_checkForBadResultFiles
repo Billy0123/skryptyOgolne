@@ -1,0 +1,124 @@
+source scriptConfig;
+
+rm ${fileJobIDName} ${fileDirectoriesName} ${filePointsName} ${fileAdditionalIndexesName};
+
+initMode=$(cut -f1 fileParams | head -n $1 | tail -1);
+N=$(cut -f2 fileParams | head -n $1 | tail -1);
+
+maxPoint=12;
+if [ ${initMode} -eq 52 -o ${initMode} -eq 53 ]; then minPoint=11; fi;
+
+if [ ${initMode} -eq 53 -o ${initMode} -eq 63 -o ${initMode} -eq 65 -o ${initMode} -eq 67 -o ${initMode} -eq 69 -o ${initMode} -eq 72 ]; then maxPoint=15; fi;
+if [ ${1} -eq 16 -o ${1} -eq 18 -o ${1} -eq 20 -o ${1} -eq 22 -o ${1} -eq 24 -o ${1} -eq 26 ]; then maxPoint=15; fi;
+
+filterText=IM${initMode}N${N}_
+
+#Comment: do dzialania program potrzebuje plikow z qstat/squeue. UWAGA: qstat domyslnie wyrzuca dane oddzielane spacjami (OK), ale squeue domyslnie (chyba) rzuca tabulacjami. Dlatego squeue trzeba uzyc formatujac output (na oddzialanie spacjami). Dodatkowo potrzeba pliku 'startArguments.txt' (odpowiednio ustawionego, czyli dla G=1)
+queueDownloadSuccess=0;
+if [ ${queueSystem} = 0 ]; then
+  squeue -u mb1991 -o "%i %P %j %T %M %l %D %R" > ${fileRunningJobsName};
+  if [ "$(cat ${fileRunningJobsName} | head -n 1 | tail -1)" == "JOBID PARTITION NAME STATE TIME TIME_LIMIT NODES NODELIST(REASON)" ]; then queueDownloadSuccess=1; fi;
+else 
+  qstat -l | grep mb1991 > ${fileRunningJobsName}    #wystarcza zwykły qstat -u mb1991, ale taki jak podany zrzuci 'koncowki' nazw (gdy sa za dlugie) zamiast poczatkow (wyswietli je jako np. "bardzoDlugaNazwaJobu012345" -> "...azwaJobu012345" (zamiast "bardzoDlugaNazwaJ")
+  queueDownloadSuccess=1; #UWAGA: BRAK TESTU ISTNIENIA PLIKU KOLEJKI - NALEŻY TO SPRAWDZIĆ
+fi
+
+if [ ${queueDownloadSuccess} = 1 ]; then
+  echo "Job list downloaded successfully. Starting reanimation...";
+  
+  listLength=$(wc -l reanimationAllExceptions | cut -f1 -d' ');
+  for((j=1;j<=${listLength};j++)); do 
+    sed -i "/$(cat reanimationAllExceptions | head -n ${j} | tail -1)/d" ${fileRunningJobsName};
+  done;
+
+  #przemianowanie złych (niepełnych plików) na .err(RC)X (X-liczba istniejacych plikow .err + 1)
+  printf "Searching for bad Results/Configuration files... \n";
+  for ((k=${minPoint};k<${maxPoint};k++)); do 
+    PRESSURE=$(cut -f2 startArguments.txt | head -n $((${k} + 1)) | tail -1);
+    for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+      dirPath=2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+      for ((j=1;j<${maxJobID};j++)); do
+        properSize=11000;
+        if [ ${initMode} -eq 52 -o ${initMode} -eq 53 ]; then 
+          if [ ${j} -eq 1 -a ${k} -eq 11 ]; then properSize=10000; fi;
+        fi;
+        fileNameR=j-${j}_Configurations_arg-${PRESSURE}_Results.txt;
+        fileNameC=j-${j}_Configurations_arg-${PRESSURE}.txt;
+        
+        if [ -f ${dirPath}/${fileNameR} ]; then  #plik R istnieje
+          resultFileSize=$(cat ${dirPath}/${fileNameR} | wc -l); 
+          if [ ${resultFileSize} -ne ${properSize} ]; then  #plik R jest zły
+            printf "found ${resultFileSize} (proper: ${properSize}) lines in: ${dirPath}/${fileNameR} - appending .errRX to fileNames...\n";
+            mv -f ${dirPath}/${fileNameR} ${dirPath}/${fileNameR}.errR$(($(ls ${dirPath} | grep ${fileNameR}.errR | wc -l)+1));
+	    mv -f ${dirPath}/${fileNameC} ${dirPath}/${fileNameC}.errR$(($(ls ${dirPath} | grep ${fileNameC}.errR | wc -l)+1));
+          elif [ -f ${dirPath}/${fileNameC} ]; then  #plik R jest dobry & plik C istnieje
+            if [ $(cat ${dirPath}/${fileNameC} | wc -l) -ne 7 ]; then  #plik C jest zły
+              printf "found bad configuration file associated with proper Results file: ${dirPath}/${fileNameC} - appending .errCX to fileNames...\n";
+              mv -f ${dirPath}/${fileNameR} ${dirPath}/${fileNameR}.errC$(($(ls ${dirPath} | grep ${fileNameR}.errC | wc -l)+1));
+	      mv -f ${dirPath}/${fileNameC} ${dirPath}/${fileNameC}.errC$(($(ls ${dirPath} | grep ${fileNameC}.errC | wc -l)+1));
+            fi;
+          else  #plik R jest dobry & plik C nie istnieje
+            printf "missing configuration file associated with proper Results file: ${dirPath}/${fileNameC} - appending .errCX to fileNameR...\n";
+            mv -f ${dirPath}/${fileNameR} ${dirPath}/${fileNameR}.errC$(($(ls ${dirPath} | grep ${fileNameR}.errC | wc -l)+1));
+          fi;
+        elif [ -f ${dirPath}/${fileNameC} ]; then  #plik R nie istnieje & plik C istnieje
+          higherJobIDTestResult=0;
+          for ((jobidTestI=1;jobidTestI<=5;jobidTestI++)); do 
+            if [ -f ${dirPath}/j-$((${j}+${jobidTestI}))_Configurations_arg-${PRESSURE}.txt ]; then higherJobIDTestResult=1; break; fi;
+          done;
+          if [ ${higherJobIDTestResult} -eq 1 ]; then  #usuwaj plik C tylko, gdy NIE jest to plik 'initowy' (o najwyższym jobID; test do 5 kolejnych)
+            printf "removing configuration file associated with non-existing Results file: ${dirPath}/${fileNameC}, prior to the reanimation procedure...\n";
+            rm -f ${dirPath}/${fileNameC};
+          fi;
+        fi;
+      done;
+    done;
+  done;
+
+  #przesunięcie plików o mniejszych jobID w górę, w miejsce przemianowanych (niepełnych) plików
+  printf "Searching for missing Results files... \n";
+  for ((k=${minPoint};k<${maxPoint};k++)); do 
+    PRESSURE=$(cut -f2 startArguments.txt | head -n $((${k} + 1)) | tail -1);
+    for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+      dirPath=2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+      minFoundID=0; maxFoundID=0; foundIDCount=0;
+      for ((j=1;j<${maxJobID};j++)); do
+        fileNameR=j-${j}_Configurations_arg-${PRESSURE}_Results.txt;
+        if [ -f ${dirPath}/${fileNameR} ]; then
+          if [ ${minFoundID} -eq 0 ]; then minFoundID=${j}; fi;
+          maxFoundID=${j};
+          ((foundIDCount++));
+        fi;
+      done;
+      if [ ${foundIDCount} -gt 0 -a $((${maxFoundID}-${minFoundID}+1)) -ne ${foundIDCount} ]; then
+        for ((j=$((${maxFoundID}-1));j>${minFoundID};j--)); do 
+          fileNameR=_Configurations_arg-${PRESSURE}_Results.txt;
+          fileNameC=_Configurations_arg-${PRESSURE}.txt;
+          if [ ! -f ${dirPath}/j-${j}${fileNameR} ]; then
+            printf "found missing Results file: ${dirPath}/j-${j}${fileNameR} - shifting consequent iterations...\n";
+            for ((l=${j};l>${minFoundID};l--)); do
+              mv ${dirPath}/j-$((${l}-1))${fileNameR} ${dirPath}/j-${l}${fileNameR};
+              mv ${dirPath}/j-$((${l}-1))${fileNameC} ${dirPath}/j-${l}${fileNameC};
+            done;
+            ((minFoundID++));
+            ((j++));
+          fi;
+        done;
+      fi;
+    done;
+  done;
+
+  java getmissingjobs ${minDirectory} ${maxDirectory} ${minPoint} ${maxPoint} ${maxJobID} ${N} ${gaps} ${G} ${deltaDiameter} ${initMode} ${alpha} ${beta} ${startArgumentsFileName} ${fileRunningJobsName} ${filterText} ${fileJobIDName} ${startPreviousIteration} ${fileDirectoriesName}!${directoriesParameter} ${filePointsName}!${pointsParameter}
+  echo -e "\e[94mFinished building the list of missing jobs, starting reanimation...\e[0m";
+
+  listLength=$(wc -l ${fileJobIDName} | cut -f1 -d' ');
+  licznik=$(date +%s);
+  for((i=1;i<=${listLength};i++)); do 
+    ./reanimationSingle ${filterText} ${i} ${listLength} ${licznik} ${initMode} ${N}; 
+    licznik=$((${licznik}+1));
+  done
+  echo "";
+else echo "Couldn't download job list. Aborting reanimation...";
+fi;
+
+rm ${fileRunningJobsName};

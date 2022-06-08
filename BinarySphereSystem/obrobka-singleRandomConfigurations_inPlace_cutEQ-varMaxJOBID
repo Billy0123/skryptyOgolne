@@ -1,0 +1,37 @@
+source scriptConfig;
+
+deltaDiameter=$(cat fileDeltaDiameters | head -n ${1} | tail -1);
+
+if [ ${1} = 1 ]; then maxDirectory=20;
+elif [ ${1} = 9 ]; then maxDirectory=40;
+fi;
+
+mkdir ${newDirectoryName};
+startArgumentsLength=$(wc -l startArguments.txt | cut -f1 -d' ');
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  mkdir ${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+  for ((j=1;j<=${startArgumentsLength};j++)); do
+    PRESSURE=$(cut -f2 startArguments.txt | head -n ${j} | tail -1);
+    IDMAX=$((${maxJobID}+1));
+    for ((k=${maxJobID};k>=1;k--)); do
+      filePath=3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-${k}_Configurations_arg-${PRESSURE}_Results.txt;
+      if [ -f ${filePath} ]; then
+        if [ ${IDMAX} -gt ${maxJobID} ]; then IDMAX=${k}; fi;
+        if [ ${k} -eq ${IDMAX} ]; then
+          cat ${filePath} | tail -n 9000 >> ${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt; 
+        else 
+          cat ${filePath} >> ${newDirectoryName}/3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-none_Configurations_arg-${PRESSURE}_Results.txt; 
+        fi;
+      fi;
+    done;
+  done;
+done;
+
+cd ${newDirectoryName};
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  time ./program 5 none ${linesToSkip} ${N} ${gaps} ${deltaDiameter} ${initMode} ${G} ${startPointNumber} $((${maxPoint}-${startPointNumber})) ${i} ${alpha} ${beta};
+done;
+#time srun java -jar filterCopy.jar;
+
+
+exit 0

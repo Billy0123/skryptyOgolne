@@ -1,0 +1,45 @@
+#!/bin/bash
+#SBATCH --job-name=merger
+#SBATCH -p fast
+#SBATCH --time=0-01:00:00
+#SBATCH --mem-per-cpu=100M
+#SBATCH --no-requeue
+#SBATCH --output=OUT_merger_%j.txt
+#SBATCH --error=ERR_merger_%j.txt
+
+#use this file from folder 'merged'
+source ../scriptConfig;
+
+deltaDiameter=$(cat ../deltaList | head -n ${1} | tail -1);
+N=${2};
+point=${3};
+
+listLength=$(wc -l ${startArgumentsFileName} | cut -f1 -d' ');
+if [ ${G} = 1 ]; then
+   PRESSURE=$(cut -f2 ${startArgumentsFileName} | head -n $((${point} + 1)) | tail -1);
+else
+   PRESSURE=$(cut -f2 ${startArgumentsFileName} | head -n $((${listLength} - ${point})) | tail -1);
+fi
+
+mkdir $TMPDIR/lustre/mb1991/tmp_mb1991_$SLURM_JOB_ID;
+cd $TMPDIR/lustre/mb1991/tmp_mb1991_$SLURM_JOB_ID;
+outputFolder=2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${minDirectory}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta};
+mkdir ${outputFolder};
+for ((dir=${minDirectory};dir<=${maxDirectory};dir++)); do
+  cp $SLURM_SUBMIT_DIR/../2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${dir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/j-1_Configurations_arg-${PRESSURE}_Results.txt ./j-none_Configurations_arg-${PRESSURE}_Results-${dir}.txt;
+done;
+fileLength=$(wc -l j-none_Configurations_arg-${PRESSURE}_Results-${minDirectory}.txt | cut -f1 -d' '); 
+printf "cycle\t" >> ${outputFolder}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+for ((dir=${minDirectory};dir<=${maxDirectory};dir++)); do
+  printf "H00_${dir}\tH11_${dir}\tH01_${dir}\t" >> ${outputFolder}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+done;
+printf "\n" >> ${outputFolder}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+for ((line=1;line<=${fileLength};line++)); do
+  printf "$((${line}*1000))\t" >> ${outputFolder}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+  for ((dir=${minDirectory};dir<=${maxDirectory};dir++)); do
+    printf "$(cat j-none_Configurations_arg-${PRESSURE}_Results-${dir}.txt | head -n ${line} | tail -1)" >> ${outputFolder}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+  done;
+  printf "\n" >> ${outputFolder}/j-none_Configurations_arg-${PRESSURE}_Results.txt;
+done;
+cp -fr ${outputFolder} $SLURM_SUBMIT_DIR;
+rm -r $TMPDIR/lustre/mb1991/tmp_mb1991_$SLURM_JOB_ID;

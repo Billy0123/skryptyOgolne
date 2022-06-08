@@ -1,0 +1,12 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+
+for ((i=1;i<=24;i++)); do
+  initMode=$(cut -f1 ../fileParams | head -n $1 | tail -1);
+  N=$(cut -f2 ../fileParams | head -n $1 | tail -1);
+  printf "N=${N}, initMode=${initMode}\n" >> ResultsSummary.txt;
+  printf "deltaDiameter=${deltaDiameter} (alpha: ${alpha})\n" >> ResultsSummary.txt;
+  cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${useSpecificDir}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt >> ResultsSummary.txt
+  printf "\n\n" >> ResultsSummary.txt
+done;
+

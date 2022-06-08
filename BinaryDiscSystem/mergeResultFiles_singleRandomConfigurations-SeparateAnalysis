@@ -1,0 +1,20 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+resFileName=ResultsSummary-single-separateAnalysis.txt;
+rm ${resFileName};
+
+initMode=$(cut -f1 ../fileParams | head -n $1 | tail -1);
+N=$(cut -f2 ../fileParams | head -n $1 | tail -1);
+
+for ((startIteration=1;startIteration<=220;startIteration++)); do 
+   printf "ID paczki 200k cykli\t${startIteration}\n" >> ${resFileName};
+   i=$((10000+${minDirectory}+${startIteration}*100));
+   cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt >> ${resFileName};
+   for ((buffi=$((${minDirectory}+1));buffi<=${maxDirectory};buffi++)); do
+      i=$((10000+${buffi}+${startIteration}*100));
+      cat 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt | tail -1 >> ${resFileName}
+   done;
+   printf "\n" >> ${resFileName}
+done;
+
+

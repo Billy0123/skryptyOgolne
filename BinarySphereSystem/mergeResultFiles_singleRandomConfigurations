@@ -1,0 +1,18 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+rm ResultsSummary-single.txt;
+N=${1};
+
+for ((beta=1;beta<=1;beta++)); do
+  printf "beta=${beta}\n" >> ResultsSummary-single.txt
+  for ((deltaDiaIndex=1;deltaDiaIndex<=9;deltaDiaIndex++)); do   
+    deltaDiameter=$(cat ../fileDeltaDiameters | head -n ${deltaDiaIndex} | tail -1);
+    printf "deltaDiameter=${deltaDiameter}\n" >> ResultsSummary-single.txt
+    for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+      printf "directory=${i}\n" >> ResultsSummary-single.txt
+      cat 3D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt >> ResultsSummary-single.txt
+    done;
+    printf "\n" >> ResultsSummary-single.txt
+  done;
+  printf "\n" >> ResultsSummary-single.txt
+done;

@@ -1,0 +1,42 @@
+source scriptConfig;
+
+#ustawienia specyficzne dla problemu
+mD=$(cat diametersFile | head -n ${1} | tail -1);
+G=${2};
+fullArgNum=$(wc -l startArguments.txt | cut -f1 -d' ');
+if [ ${mD} = 1.000000 ]; then minPoint=103; maxPoint=212;
+#elif [ ${mD} = 0.510000 ]; then minPoint=175; maxPoint=230;
+fi;
+if [ ${G} = 0 ]; then minPointBuffer=${minPoint}; minPoint=$((${fullArgNum} - ${maxPoint})); maxPoint=$((${fullArgNum} - ${minPointBuffer})); fi;
+filterText=HCTetra${N}d${mD}_;
+
+#standardowa pętla
+#qstat -u mb1991 > ${fileRunningJobsName};
+squeue -u mb1991 -o "%i %P %j %T %M %l %D %R" > ${fileRunningJobsName};
+
+if [ "$(cat ${fileRunningJobsName} | head -n 1 | tail -1)" == "JOBID PARTITION NAME STATE TIME TIME_LIMIT NODES NODELIST(REASON)" ]; then
+  echo "Job list downloaded successfully. Starting reanimation...";
+  rm ${fileDirectoriesName} ${filePointsName}; 
+
+  cat ${fileRunningJobsName} | grep " ${filterText}G${G}" > joby; #uwaga - dostosować filtrację!
+  liczbaJobow=$(cat joby | wc -l); 
+  if [ ${liczbaJobow} -lt $((${maxDirectory}-${minDirectory}+1)) ]; then  
+    for ((j=${minDirectory};j<=${maxDirectory};j++)); do
+      liczbaJobowSpecificDir=$(cat joby | grep B${j}P | wc -l);
+      if [ ${liczbaJobowSpecificDir} -eq 0 ]; then
+        errorFiles=$(ls 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${j}_mN-${mN}_mS-${mS}_mD-${mD} | grep _Results.txt.err | wc -l);
+        p=$(($(ls 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${j}_mN-${mN}_mS-${mS}_mD-${mD} | grep _Results | wc -l)+${minPoint}-1-${startPreviousIteration}-${errorFiles})); #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! zupełnie NIEdostosowane dla HCM-HD! Nie chce mi się teraz (14.04.2018) sprawdzać jak wyglądała tam struktura folderu
+        if [ ${p} -lt $((${maxPoint}-1-${startPreviousIteration})) ]; then
+          echo ${p} >> ${filePointsName};
+          echo ${j} >> ${fileDirectoriesName};
+        fi; 
+      fi
+    done;
+  fi; 
+  rm joby;
+
+  ./reanimationSequence ${filterText};
+else echo "Couldn't download job list. Aborting reanimation...";
+fi;
+
+rm ${fileRunningJobsName};

@@ -1,0 +1,11 @@
+source scriptConfig;
+press=4.0000E+01;
+maxVReduced=1.012;
+
+for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+  stringArray=($(cut -f2 2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_mN-${mN}_mS-${mS}_mD-${mD}/j-1_Configurations_arg-${press}.txt | head -n 1 | tail -1)); 
+  if [[ ${stringArray[1]} < ${maxVReduced} ]]; then 
+    echo ${i} >> listOfDirsOfNonDefectedSystems; 
+  fi;
+done;
+

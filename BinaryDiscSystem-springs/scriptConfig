@@ -1,0 +1,43 @@
+#common (used in more than one script)
+N=168;
+G=1;
+gaps=0;
+initMode=0;
+deltaDiameter=1.000E-03;
+alpha=1.0000E+00;
+beta=0.000E+00;
+T=1.000E-03;  #T*
+parB=0;
+minDirectory=1
+maxDirectory=10
+startArgumentsFileName=startArguments.txt
+
+#obrobka
+linesToSkip=0;
+startPointNumber=0;
+useSpecificDir=${minDirectory};
+liczbaDanych=2; #2-normal, 2-freeEnergies [columns in Results file -1]
+
+#resultMerger
+newDirectoryName=/home/users/mb1991/grant_564/scratch/mb/BDS_harmonicPotential/variousN-isotropic_2-reEntrantAndZigzag;
+
+#getMissingJobs & start/reanimateSequence
+queueSystem=0 #0-SLURM (Cane, Chimera), 1-PBS/Torque (Reef, Inula)
+minPoint=0 #from 0
+maxPoint=1 #max+1 from 0
+maxJobID=2 #startRepeats+1
+fileRunningJobsName=file
+filterText=S${initMode}CS1_ #COEF:0-a1b1,1-a10b100,2-a100b10000,...
+fileJobIDName=jobIDs
+startPreviousIteration=0 #repeatsLeft: jobID-1+startPreviousIteration
+fileDirectoriesName=directories
+directoriesParameter=B
+filePointsName=points
+pointsParameter=P
+#additional
+fileAdditionalIndexesName=additionalIndexes
+additionalIndexesParameter=C
+additionalMinIndex=0 #from 0 [row in additional file]
+additionalMaxIndex=1 #max+1 from 0 [row in additional file]
+
+#INFO

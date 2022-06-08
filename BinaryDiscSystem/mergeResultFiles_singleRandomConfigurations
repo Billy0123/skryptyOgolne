@@ -1,0 +1,24 @@
+#use this file from folder 'merged'
+source ../scriptConfig;
+
+for ((beta=0;beta<=2;beta++)); do
+  printf "beta=${beta}\n" >> ResultsSummary.txt
+  for ((deltaDiaIndex=0;deltaDiaIndex<=5;deltaDiaIndex++)); do   
+    if [ ${deltaDiaIndex} -eq 0 ]; then deltaDiameter=5.000E-02;
+    elif [ ${deltaDiaIndex} -eq 1 ]; then deltaDiameter=4.000E-02;
+    elif [ ${deltaDiaIndex} -eq 2 ]; then deltaDiameter=3.000E-02;
+    elif [ ${deltaDiaIndex} -eq 3 ]; then deltaDiameter=2.000E-02;
+    elif [ ${deltaDiaIndex} -eq 4 ]; then deltaDiameter=1.000E-02;
+    else deltaDiameter=1.000E-03; fi;
+    printf "deltaDiameter=${deltaDiameter}\n" >> ResultsSummary.txt
+    for ((i=${minDirectory};i<=${maxDirectory};i++)); do
+      printf "directory=${i}\n" >> ResultsSummary.txt
+      cat filteredFiles/2D_N-${N}_gaps-${gaps}_G-${G}_badanie-${i}_D-${deltaDiameter}_inM-${initMode}_a-${alpha}_b-${beta}/ResultsSummary.txt >> ResultsSummary.txt
+    done;
+    printf "\n\n" >> ResultsSummary.txt
+  done;
+  printf "\n\n" >> ResultsSummary.txt
+done;
+
+
+

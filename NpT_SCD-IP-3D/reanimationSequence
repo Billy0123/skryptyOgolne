@@ -1,0 +1,62 @@
+source scriptConfig;
+licznik=$(date +%s);
+mkdir -p output;
+filterText=${1};
+
+#ustawienia specyficzne dla problemu
+iterationsNumber=1;
+invPotPower=${2};
+T=${3};
+
+fullArgNum=$(wc -l startArguments.txt | cut -f1 -d' ');
+if [ ${invPotPower} = 1.000E+02 ]; then 
+  if [ ${T} = 1.000E+00 ]; then minPoint=0; maxPoint=9;
+  elif [ ${T} = 1.000E-01 ]; then minPoint=8; maxPoint=14;
+  elif [ ${T} = 1.000E-02 ]; then minPoint=13; maxPoint=19;
+  elif [ ${T} = 1.000E-03 ]; then minPoint=18; maxPoint=24;
+  elif [ ${T} = 1.000E-04 ]; then minPoint=23; maxPoint=29;
+  elif [ ${T} = 1.000E-05 ]; then minPoint=28; maxPoint=34;
+  fi;
+elif [ ${invPotPower} = 5.000E+02 ]; then 
+  if [ ${T} = 1.000E+00 ]; then minPoint=3; maxPoint=14;
+  elif [ ${T} = 1.000E-01 ]; then minPoint=8; maxPoint=19;
+  elif [ ${T} = 1.000E-02 ]; then minPoint=13; maxPoint=24;
+  elif [ ${T} = 1.000E-03 ]; then minPoint=18; maxPoint=29;
+  elif [ ${T} = 1.000E-04 ]; then minPoint=23; maxPoint=34;
+  elif [ ${T} = 1.000E-05 ]; then minPoint=28; maxPoint=39;
+  fi;
+elif [ ${invPotPower} = 1.000E+03 ]; then 
+  if [ ${T} = 1.000E+00 ]; then minPoint=1; maxPoint=18;
+  elif [ ${T} = 1.000E-01 ]; then minPoint=6; maxPoint=23;
+  elif [ ${T} = 1.000E-02 ]; then minPoint=11; maxPoint=28;
+  elif [ ${T} = 1.000E-03 ]; then minPoint=16; maxPoint=33;
+  elif [ ${T} = 1.000E-04 ]; then minPoint=21; maxPoint=38;
+  elif [ ${T} = 1.000E-05 ]; then minPoint=26; maxPoint=43;
+  fi;
+fi;
+minPoint=0; maxPoint=19;
+if [ ${G} = 0 ]; then minPointBuffer=${minPoint}; minPoint=$((${fullArgNum} - ${maxPoint})); maxPoint=$((${fullArgNum} - ${minPointBuffer})); fi;
+
+#standardowa pętla
+listLength=$(wc -l ${fileDirectoriesName} | cut -f1 -d' ');
+for((i=1;i<=${listLength};i++)); do 
+  directory=$(cat ${fileDirectoriesName} | head -n ${i} | tail -1);
+  point=$(cat ${filePointsName} | head -n ${i} | tail -1); #loadowany(from 0)
+  if [ ${point} -lt ${minPoint} ]; then
+    point=${minPoint};
+    echo "starting ${i}/${listLength}: point-${point}, directory-${directory}";
+    if [ ${queueSystem} = 0 ]; then
+      sbatch -Q --job-name=${filterText}G${G}B${directory}P${point} --output=output/OUT_HC${N}_gaps-${gaps}_G-${G}_B-${directory}_P-${point}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_%j.txt --error=output/ERR_HC${N}_gaps-${gaps}_G-${G}_B-${directory}_P-${point}_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_%j.txt sbatchTMPRecursionStartNormal ${N} ${gaps} ${G} ${iterationsNumber} ${directory} ${maxPoint} ${point} ${filterText} ${licznik} ${maxJobID} ${T} ${polydisperseDelta} ${invPotPower};
+    else
+      qsub -N ${filterText}G${G}B${directory}P${point} -v VAR1=${N},VAR2=${gaps},VAR3=${G},VAR4=${iterationsNumber},VAR5=${directory},VAR6=${maxPoint},VAR7=${point},filterText=${filterText},VAR8=${licznik},VAR9=${maxJobID},VAR10=${T},VAR11=${polydisperseDelta},VAR12=${invPotPower} qsubTMPRecursionStartNormal;
+    fi
+    licznik=$((${licznik}+1));
+  else
+    echo "reanimating ${i}/${listLength}: point-${point}, directory-${directory}";
+    if [ ${queueSystem} = 0 ]; then
+    sbatch --job-name=${filterText}G${G}B${directory}P$((${point} + 1)) --output=output/OUT_HC_${N}_gaps-${gaps}_G-${G}_B-${directory}_P-$((${point} + 1))_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_%j.txt --error=output/ERR_HC_${N}_gaps-${gaps}_G-${G}_B-${directory}_P-$((${point} + 1))_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_%j.txt sbatchTMPRecursion ${maxJobID} ${N} ${gaps} ${G} ${point} ${iterationsNumber} ${directory} ${maxPoint} ${filterText} ${T} ${polydisperseDelta} ${invPotPower};
+    else
+    qsub -N ${filterText}G${G}B${directory}P$((${point} + 1)) -o output/OUT_HC_${N}_gaps-${gaps}_G-${G}_B-${directory}_P-$((${point} + 1))_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_prevJobID-REANIMATED.txt -e output/ERR_HC${N}_gaps-${gaps}_G-${G}_B-${directory}_P-$((${point} + 1))_T-${T}_pDD-${polydisperseDelta}_iPP-${invPotPower}_prevJobID-REANIMATED.txt -v VAR1=${maxJobID},VAR2=${N},VAR3=${gaps},VAR4=${G},VAR5=${point},VAR6=${iterationsNumber},VAR7=${directory},VAR8=${maxPoint},filterText=${filterText},VAR9=${T},VAR10=${polydisperseDelta},VAR11=${invPotPower} qsubTMPRecursion;
+    fi
+  fi
+done
